@@ -18,9 +18,9 @@
 
 | Роль | GitHub | Що реалізує |
 |---|---|---|
-| Тімлід | <логін-тімліда> | Репозиторій, Core: IComponent, ComponentType; рев'ю і злиття PR |
+| Тімлід | targanfly | Репозиторій, Core: IComponent, ComponentType; рев'ю і злиття PR |
 | Розробник | SilentProg | ComponentBase, Frame, Motor, Propeller, Battery (ЛР1); FlightController, Esc, Camera, Vtx (ЛР2) |
-| Тестувальник | <логін-тестувальника> | ManualCheck, тест-кейси, Issues про дефекти; модульні тести (ЛР2+) |
+| Тестувальник | SilentKroha | ManualCheck, тест-кейси, Issues про дефекти; модульні тести (ЛР2+) |
 
 ## Гілки
 
