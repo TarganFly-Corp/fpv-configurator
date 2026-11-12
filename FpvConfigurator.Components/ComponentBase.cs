@@ -39,6 +39,6 @@ namespace FpvConfigurator.Components
         public abstract IReadOnlyDictionary<string, string> GetSpecs();
 
         public override string ToString() =>
-            $"{Type}: {Manufacturer} {Name}, {Price} грн, {WeightGrams} г, в наявності: {InStock}";
+            $"{Type}: {Manufacturer} {Name}, {Price} UAH, {WeightGrams} г, в наявності: {InStock}";
     }
 }
