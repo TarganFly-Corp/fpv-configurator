@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="FpvConfigurator.Components/FpvConfigurator.Components.csproj" Id="ab75d18f-3911-4734-ba22-559f85ba17ab" />
   <Project Path="FpvConfigurator.Core/FpvConfigurator.Core.csproj" Id="a2c2bdda-5c28-41c2-afcd-0bcf170a70b1" />
 </Solution>
