@@ -13,7 +13,7 @@ public class Frame : ComponentBase
         if (stackMount is not ("20x20" or "25.5x25.5" or "30.5x30.5"))
             throw new ArgumentException($"Невідоме кріплення стеку: {stackMount}", nameof(stackMount));
         if (wheelbaseMm <= 0)
-            throw new ArgumentOutOfRangeException(nameof(wheelbaseMm), "Колісна база має бути більшою за 0");
+            throw new ArgumentOutOfRangeException(nameof(wheelbaseMm), "Колісна база має бути більшою за 0 (wheelbaseMm > 0)");
 
         MaxPropInches = maxPropInches;
         StackMount = stackMount;
