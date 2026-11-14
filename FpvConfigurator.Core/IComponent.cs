@@ -1,35 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace FpvConfigurator.Core;
 
-namespace FpvConfigurator.Core
+/// <summary>Комплектуюча FPV-дрона. Реалізується класами в проєкті FpvConfigurator.Components.</summary>
+public interface IComponent
 {
-    /// <summary>Комплектуюча FPV-дрона. Реалізується класами в проєкті FpvConfigurator.Components.</summary>
-    public interface IComponent
-    {
-        /// <summary>Унікальний ідентифікатор у каталозі.</summary>
-        string Id { get; }
+    /// <summary>Унікальний ідентифікатор у каталозі.</summary>
+    string Id { get; }
 
-        /// <summary>Назва моделі.</summary>
-        string Name { get; }
+    /// <summary>Назва моделі.</summary>
+    string Name { get; }
 
-        /// <summary>Виробник.</summary>
-        string Manufacturer { get; }
+    /// <summary>Виробник.</summary>
+    string Manufacturer { get; }
 
-        /// <summary>Тип комплектуючої.</summary>
-        ComponentType Type { get; }
+    /// <summary>Тип комплектуючої. Для користувацьких деталей це ComponentType.Custom.</summary>
+    ComponentType Type { get; }
 
-        /// <summary>Ціна, грн.</summary>
-        decimal Price { get; }
+    /// <summary>Ключ категорії в реєстрі. Для стандартних деталей збігається з назвою типу.</summary>
+    string CategoryKey => Type.ToString();
 
-        /// <summary>Вага, г.</summary>
-        double WeightGrams { get; }
+    /// <summary>Ціна, грн.</summary>
+    decimal Price { get; }
 
-        /// <summary>Чи є в наявності.</summary>
-        bool InStock { get; }
+    /// <summary>Вага, г.</summary>
+    double WeightGrams { get; }
 
-        /// <summary>Технічні характеристики у вигляді «назва – значення».</summary>
-        IReadOnlyDictionary<string, string> GetSpecs();
-    }
+    /// <summary>Чи є в наявності.</summary>
+    bool InStock { get; }
 
+    /// <summary>Значення параметрів за ключами зі схеми категорії.</summary>
+    IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>();
+
+    /// <summary>Технічні характеристики у вигляді «назва: значення».</summary>
+    IReadOnlyDictionary<string, string> GetSpecs();
 }
