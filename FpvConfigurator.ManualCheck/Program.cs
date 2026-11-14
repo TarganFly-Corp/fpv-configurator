@@ -1,4 +1,5 @@
-﻿using FpvConfigurator.Components;
+﻿using FpvConfigurator.Catalog;
+using FpvConfigurator.Components;
 using FpvConfigurator.Core;
 using System.ComponentModel;
 
@@ -58,6 +59,23 @@ ExpectThrows<ArgumentOutOfRangeException>("Батарея 0S",
     () => new Battery("b", "X", "Y", 100m, 200, 0, 1300, 100, "XT60"));
 ExpectThrows<ArgumentOutOfRangeException>("Рама з від'ємною колісною базою",
     () => new Frame("f", "X", "Y", 100m, 100, 5, "30.5x30.5", -5));
+
+// 3. Користувацькі деталі з JSON (ЛР2)
+var registry = CategoryRegistry.WithStandardCategories();
+var loader = new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry));
+var custom = loader.LoadFile(Path.Combine(AppContext.BaseDirectory, "custom-parts.json"));
+
+foreach (var p in custom)
+{
+    Console.WriteLine(p);
+    foreach (var (key, value) in p.GetSpecs())
+        Console.WriteLine($"      {key}: {value}");
+}
+
+Check("З JSON завантажено 3 деталі", custom.Count == 3);
+Check("Приймач став користувацькою деталлю", custom.Any(p => p.Type == ComponentType.Custom && p.CategoryKey == "Receiver"));
+Check("Рама з JSON створена як клас Frame", custom.Any(p => p is Frame));
+Check("Категорій у реєстрі стало 10", registry.All.Count == 10);
 
 Console.WriteLine($"Разом: {passed} PASS, {failed} FAIL");
 return failed == 0 ? 0 : 1;

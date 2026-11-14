@@ -10,6 +10,11 @@
   <ItemGroup>
     <ProjectReference Include="..\FpvConfigurator.Components\FpvConfigurator.Components.csproj" />
     <ProjectReference Include="..\FpvConfigurator.Core\FpvConfigurator.Core.csproj" />
+    <ProjectReference Include="..\FpvConfigurator.Catalog\FpvConfigurator.Catalog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\catalog\custom-parts.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
