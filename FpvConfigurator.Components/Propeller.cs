@@ -24,6 +24,13 @@ public class Propeller : ComponentBase
 
     public override ComponentType Type => ComponentType.Propeller;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["diameterInches"] = DiameterInches,
+        ["pitch"] = Pitch,
+        ["blades"] = Blades
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Діаметр"] = $"{DiameterInches}\"",

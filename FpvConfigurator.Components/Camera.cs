@@ -33,6 +33,14 @@ public class Camera : ComponentBase
 
     public override ComponentType Type => ComponentType.Camera;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["videoSystem"] = VideoSystem,
+        ["widthMm"] = WidthMm,
+        ["resolution"] = Resolution,
+        ["fovDegrees"] = FovDegrees
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Відеосистема"] = VideoSystem,

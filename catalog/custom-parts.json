@@ -1,0 +1,103 @@
+{
+  "categories": [
+    {
+      "key": "Receiver",
+      "displayName": "Приймач керування",
+      "parameters": [
+        {
+          "key": "protocol",
+          "displayName": "Протокол",
+          "type": "Choice",
+          "options": [ "ELRS", "Crossfire", "Tracer", "FrSky" ]
+        },
+        {
+          "key": "frequencyGhz",
+          "displayName": "Частота",
+          "type": "Number",
+          "unit": "ГГц",
+          "min": 0.8,
+          "max": 2.5
+        },
+        {
+          "key": "antennas",
+          "displayName": "Антен",
+          "type": "Integer",
+          "min": 1,
+          "max": 4
+        },
+        {
+          "key": "telemetry",
+          "displayName": "Телеметрія",
+          "type": "Boolean",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "Gps",
+      "displayName": "GPS-модуль",
+      "parameters": [
+        {
+          "key": "chip",
+          "displayName": "Чип",
+          "type": "Text"
+        },
+        {
+          "key": "hasCompass",
+          "displayName": "Компас",
+          "type": "Boolean"
+        },
+        {
+          "key": "sizeMm",
+          "displayName": "Розмір",
+          "type": "Integer",
+          "unit": "мм",
+          "min": 8,
+          "max": 40
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "category": "Receiver",
+      "id": "rx-1",
+      "name": "EP2",
+      "manufacturer": "HappyModel",
+      "price": 450,
+      "weightGrams": 0.5,
+      "parameters": {
+        "protocol": "ELRS",
+        "frequencyGhz": 2.4,
+        "antennas": 1,
+        "telemetry": true
+      }
+    },
+    {
+      "category": "Gps",
+      "id": "gps-1",
+      "name": "M10 Mini",
+      "manufacturer": "HGLRC",
+      "price": 900,
+      "weightGrams": 5.8,
+      "parameters": {
+        "chip": "u-blox M10",
+        "hasCompass": false,
+        "sizeMm": 15
+      }
+    },
+    {
+      "category": "Frame",
+      "id": "fr-2",
+      "name": "Mark4 7\"",
+      "manufacturer": "GEPRC",
+      "price": 1600,
+      "weightGrams": 190,
+      "parameters": {
+        "maxPropInches": 7,
+        "stackMount": "30.5x30.5",
+        "wheelbaseMm": 295
+      }
+    }
+  ]
+}

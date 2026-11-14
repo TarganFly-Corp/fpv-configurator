@@ -28,6 +28,15 @@ public class Motor : ComponentBase
 
     public override ComponentType Type => ComponentType.Motor;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["statorSize"] = StatorSize,
+        ["kv"] = Kv,
+        ["minCells"] = MinCells,
+        ["maxCells"] = MaxCells,
+        ["maxCurrentA"] = MaxCurrentA
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Статор"] = StatorSize,

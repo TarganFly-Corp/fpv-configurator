@@ -40,6 +40,16 @@ public class FlightController : ComponentBase
 
     public override ComponentType Type => ComponentType.FlightController;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["mcu"] = Mcu,
+        ["stackMount"] = StackMount,
+        ["minCells"] = MinCells,
+        ["maxCells"] = MaxCells,
+        ["firmware"] = Firmware,
+        ["uartCount"] = UartCount
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Процесор"] = Mcu,

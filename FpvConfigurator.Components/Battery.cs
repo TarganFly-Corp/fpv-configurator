@@ -27,6 +27,14 @@ public class Battery : ComponentBase
 
     public override ComponentType Type => ComponentType.Battery;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["cells"] = Cells,
+        ["capacityMah"] = CapacityMah,
+        ["cRating"] = CRating,
+        ["connector"] = Connector
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Банок"] = $"{Cells}S ({NominalVoltage:0.0} В)",
