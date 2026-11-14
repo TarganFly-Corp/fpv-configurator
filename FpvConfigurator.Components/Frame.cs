@@ -26,6 +26,13 @@ public class Frame : ComponentBase
 
     public override ComponentType Type => ComponentType.Frame;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["maxPropInches"] = MaxPropInches,
+        ["stackMount"] = StackMount,
+        ["wheelbaseMm"] = WheelbaseMm
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Макс. гвинт"] = $"{MaxPropInches}\"",

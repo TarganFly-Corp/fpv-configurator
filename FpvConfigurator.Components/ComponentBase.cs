@@ -38,7 +38,13 @@ namespace FpvConfigurator.Components
         public abstract ComponentType Type { get; }
         public abstract IReadOnlyDictionary<string, string> GetSpecs();
 
+        /// <summary>Ключ категорії. Стандартні деталі беруть назву типу, CustomComponent перевизначає.</summary>
+        public virtual string CategoryKey => Type.ToString();
+
+        /// <summary>Параметри за ключами зі схеми категорії (див. StandardCategories у Catalog).</summary>
+        public abstract IReadOnlyDictionary<string, object?> Parameters { get; }
+
         public override string ToString() =>
-            $"{Type}: {Manufacturer} {Name}, {Price} UAH, {WeightGrams} г, в наявності: {InStock}";
+            $"{CategoryKey}: {Manufacturer} {Name}, {Price} UAH, {WeightGrams} г, в наявності: {InStock}";
     }
 }

@@ -38,6 +38,16 @@ public class Esc : ComponentBase
 
     public override ComponentType Type => ComponentType.Esc;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["continuousCurrentA"] = ContinuousCurrentA,
+        ["minCells"] = MinCells,
+        ["maxCells"] = MaxCells,
+        ["isFourInOne"] = IsFourInOne,
+        ["stackMount"] = IsFourInOne ? StackMount : null,
+        ["protocol"] = Protocol
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Струм"] = $"{ContinuousCurrentA} A",

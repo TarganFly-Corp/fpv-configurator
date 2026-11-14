@@ -33,6 +33,14 @@ public class Vtx : ComponentBase
 
     public override ComponentType Type => ComponentType.Vtx;
 
+    public override IReadOnlyDictionary<string, object?> Parameters => new Dictionary<string, object?>
+    {
+        ["videoSystem"] = VideoSystem,
+        ["maxPowerMw"] = MaxPowerMw,
+        ["frequencyGhz"] = FrequencyGhz,
+        ["mount"] = Mount
+    };
+
     public override IReadOnlyDictionary<string, string> GetSpecs() => new Dictionary<string, string>
     {
         ["Відеосистема"] = VideoSystem,
