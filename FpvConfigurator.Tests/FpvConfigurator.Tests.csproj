@@ -15,13 +15,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FpvConfigurator.Components\FpvConfigurator.Components.csproj" />
-    <ProjectReference Include="..\FpvConfigurator.Core\FpvConfigurator.Core.csproj" />
-    <ProjectReference Include="..\FpvConfigurator.ManualCheck\FpvConfigurator.ManualCheck.csproj" />
+    <None Include="..\catalog\custom-parts.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FpvConfigurator.Core\FpvConfigurator.Core.csproj" />
+    <ProjectReference Include="..\FpvConfigurator.Components\FpvConfigurator.Components.csproj" />
+    <ProjectReference Include="..\FpvConfigurator.Catalog\FpvConfigurator.Catalog.csproj" />
   </ItemGroup>
 
 </Project>
