@@ -41,8 +41,12 @@ public sealed class JsonCatalogLoader
         }
 
         var result = new List<IComponent>();
+        var ids = new HashSet<string>();
         foreach (var dto in file.Components)
         {
+            if (!ids.Add(dto.Id))
+                throw new InvalidDataException($"Деталь з Id «{dto.Id}» описано двічі");
+
             var category = _registry.Get(dto.Category);
             var values = dto.Parameters.ToDictionary(
                 kv => kv.Key,
