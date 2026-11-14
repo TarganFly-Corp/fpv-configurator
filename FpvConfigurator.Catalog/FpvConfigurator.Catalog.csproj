@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FpvConfigurator.Components\FpvConfigurator.Components.csproj" />
+    <ProjectReference Include="..\FpvConfigurator.Core\FpvConfigurator.Core.csproj" />
+    <ProjectReference Include="..\FpvConfigurator.ManualCheck\FpvConfigurator.ManualCheck.csproj" />
+  </ItemGroup>
+
 </Project>
