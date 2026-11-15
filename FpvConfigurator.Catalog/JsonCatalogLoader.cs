@@ -28,7 +28,12 @@ public sealed class JsonCatalogLoader
 
     public IReadOnlyList<IComponent> LoadFile(string path) => Load(File.ReadAllText(path));
 
-    public IReadOnlyList<IComponent> Load(string json)
+    public IReadOnlyList<IComponent> Load(string json) => LoadCatalog(json).All;
+
+    /// <summary>Завантажує файл у каталог з пошуком і фільтрами (ФВ-25…ФВ-27).</summary>
+    public ComponentCatalog LoadCatalogFile(string path) => LoadCatalog(File.ReadAllText(path));
+
+    public ComponentCatalog LoadCatalog(string json)
     {
         var file = JsonSerializer.Deserialize<CatalogFile>(json, Options)
                    ?? throw new InvalidDataException("Порожній файл каталогу");
@@ -40,11 +45,10 @@ public sealed class JsonCatalogLoader
             _registry.Register(new ComponentCategory(c.Key, c.DisplayName, parameters));
         }
 
-        var result = new List<IComponent>();
-        var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var catalog = new ComponentCatalog();
         foreach (var dto in file.Components)
         {
-            if (!ids.Add(dto.Id))
+            if (catalog.Contains(dto.Id))
                 throw new InvalidDataException($"Деталь з Id «{dto.Id}» описано двічі");
 
             if (!_registry.TryGet(dto.Category, out var category))
@@ -56,14 +60,14 @@ public sealed class JsonCatalogLoader
             var info = new ComponentInfo(dto.Id, dto.Name, dto.Manufacturer, dto.Price, dto.WeightGrams, dto.InStock);
             try
             {
-                result.Add(_factory.Create(dto.Category, info, values));
+                catalog.Add(_factory.Create(dto.Category, info, values));
             }
             catch (ArgumentException ex)
             {
                 throw new InvalidDataException($"Деталь «{dto.Id}»: {ex.Message}", ex);
             }
         }
-        return result;
+        return catalog;
     }
 
     private static object? ToValue(JsonElement e, ParameterDefinition? definition) => e.ValueKind switch
