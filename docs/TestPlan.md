@@ -1,6 +1,6 @@
 # План тестування: FPV Configurator
 
-Версія 1.0 (ЛР2). Автор: тестувальник.
+Версія 1.1 (ЛР3). Автор: тестувальник.
 
 ## 1. Що тестуємо
 
@@ -50,3 +50,5 @@ Windows 11, .NET SDK 10, Visual Studio 2026, xUnit 2.9. Запуск усіх т
 | TC-22 | ФВ-07 | JSON: значення поза межами | antennas = 9 | InvalidDataException з Id rx-1 | високий |
 | TC-23 | ФВ-08 | JSON: повторний Id деталі | rx-1 двічі | InvalidDataException | високий |
 | TC-24 | ФВ-07 | Приклад каталогу | catalog/custom-parts.json | 3 деталі, fr-2 має тип Frame | середній |
+| TC-25 | ФВ-08 | JSON: повторний Id в іншому регістрі (дефект #29) | rx-1 і RX-1 | InvalidDataException | високий |
+| TC-26 | ФВ-07 | JSON: деталь невідомої категорії (дефект #30) | category: Gimbal | InvalidDataException з Id rx-1 і назвою категорії | високий |
