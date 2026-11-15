@@ -61,6 +61,17 @@ public class JsonCatalogLoaderTests
         Assert.Throws<InvalidDataException>(() => CreateLoader().Load(json));
     }
 
+    [Fact]
+    public void Load_UnknownCategory_ThrowsWithPartId()
+    {
+        // Дефект #30: замість InvalidDataException з Id деталі летить KeyNotFoundException
+        var json = Receiver.Replace("COMPONENTS", Rx1.Replace("\"Receiver\"", "\"Gimbal\""));
+
+        var ex = Assert.Throws<InvalidDataException>(() => CreateLoader().Load(json));
+        Assert.Contains("rx-1", ex.Message);
+        Assert.Contains("Gimbal", ex.Message);
+    }
+
 
     [Fact]
     public void LoadFile_SampleCatalog_LoadsAllParts()
