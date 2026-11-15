@@ -56,7 +56,9 @@ public sealed class ComponentCatalog
         if (!string.IsNullOrWhiteSpace(query.Text))
         {
             var text = query.Text.Trim();
-            result = result.Where(p => p.Name.Contains(text) || p.Manufacturer.Contains(text));
+            result = result.Where(p =>
+                                    p.Name.Contains(text, StringComparison.CurrentCultureIgnoreCase) ||
+                                    p.Manufacturer.Contains(text, StringComparison.CurrentCultureIgnoreCase));
         }
 
         result = query.Sort switch
