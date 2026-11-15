@@ -53,6 +53,16 @@ public class JsonCatalogLoaderTests
     }
 
     [Fact]
+    public void Load_DuplicateComponentIdInOtherCase_Throws()
+    {
+        // Дефект #29: rx-1 і RX-1 вважаються різними деталями
+        var json = Receiver.Replace("COMPONENTS", Rx1 + "," + Rx1.Replace("\"rx-1\"", "\"RX-1\""));
+
+        Assert.Throws<InvalidDataException>(() => CreateLoader().Load(json));
+    }
+
+
+    [Fact]
     public void LoadFile_SampleCatalog_LoadsAllParts()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "custom-parts.json");
