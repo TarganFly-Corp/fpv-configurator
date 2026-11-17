@@ -10,8 +10,10 @@ public class Motor : ComponentBase
     {
         if (kv <= 0)
             throw new ArgumentOutOfRangeException(nameof(kv), "KV має бути більшим за 0");
-        if (minCells < 1 || maxCells < minCells)
-            throw new ArgumentException("Некоректний діапазон батареї (S)");
+        if (minCells < 1 || maxCells > 12 || minCells > maxCells)
+            throw new ArgumentOutOfRangeException(nameof(minCells), "Діапазон банок має бути в межах 1–12S і min ≤ max");
+        if (maxCurrentA < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxCurrentA), "Струм не може бути від'ємним");
 
         StatorSize = statorSize;
         Kv = kv;
