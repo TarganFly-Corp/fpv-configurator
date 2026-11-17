@@ -1,6 +1,5 @@
 ﻿using FpvConfigurator.Catalog;
 using FpvConfigurator.Core;
-using FpvConfigurator.Services.Rules;
 
 namespace FpvConfigurator.Services;
 
@@ -18,12 +17,6 @@ public sealed class BuildService
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         ArgumentNullException.ThrowIfNull(rules);
         _rules = rules.ToList();
-    }
-
-    /// <summary>Сервіс зі стандартними правилами, щоб не передавати їх щоразу.</summary>
-    public BuildService(IComponentCatalog catalog)
-        : this(catalog, [new StackMountRule(), new PropellerSizeRule(), new CellCountRule(), new VideoSystemRule()])
-    {
     }
 
     /// <summary>Правила, якими сервіс перевіряє збірку.</summary>
