@@ -5,10 +5,12 @@ namespace FpvConfigurator.Tests.Catalog;
 
 public class JsonCatalogLoaderTests
 {
-    private static JsonCatalogLoader CreateLoader()
+    private static JsonCatalogLoader CreateLoader() => CreateLoader(new ComponentCatalog());
+
+    private static JsonCatalogLoader CreateLoader(IComponentCatalog catalog)
     {
         var registry = CategoryRegistry.WithStandardCategories();
-        return new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry));
+        return new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry), catalog);
     }
 
     private const string Receiver = """
@@ -82,5 +84,27 @@ public class JsonCatalogLoaderTests
 
         Assert.Equal(3, parts.Count);
         Assert.IsType<Frame>(parts.Single(p => p.Id == "fr-2"));
+    }
+
+    [Fact]
+    public void Load_AddsPartsToInjectedCatalog()
+    {
+        var catalog = new ComponentCatalog();
+
+        CreateLoader(catalog).Load(Receiver.Replace("COMPONENTS", Rx1));
+
+        Assert.Equal(1, catalog.Count);
+        Assert.IsType<CustomComponent>(catalog.FindById("RX-1"));
+    }
+
+    [Fact]
+    public void Load_InvalidPart_CatalogStaysUnchanged()
+    {
+        var catalog = new ComponentCatalog();
+        var bad = Rx1.Replace("\"rx-1\"", "\"rx-2\"").Replace("\"antennas\": 1", "\"antennas\": 9");
+        var json = Receiver.Replace("COMPONENTS", Rx1 + "," + bad);
+
+        Assert.Throws<InvalidDataException>(() => CreateLoader(catalog).Load(json));
+        Assert.Equal(0, catalog.Count);
     }
 }
