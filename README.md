@@ -8,7 +8,7 @@
 
 Стек: .NET 10, C#, Blazor, xUnit + Moq.
 
-Документи: [Технічне завдання](docs/TZ.md), [План тестування](docs/TestPlan.md), [Правила роботи з історією Git](docs/GitWorkflow.md), [Ретроспектива ЛР3](docs/Retro-LR3.md).
+Документи: [Технічне завдання](docs/TZ.md), [План тестування](docs/TestPlan.md), [Правила роботи з історією Git](docs/GitWorkflow.md), [Ретроспектива ЛР3](docs/Retro-LR3.md), [Впровадження залежностей](docs/DI.md).
 
 Випуски: v0.2-lr2, v0.2.1 (виправлення завантажувача JSON, гілка release/0.2), v0.3-lr3.
 
@@ -39,6 +39,16 @@
 - test/loader-regression, test/component-catalog: тестувальник
 
 Правила роботи з гілками і історією описані в docs/GitWorkflow.md.
+
+## Гілки ЛР4
+
+- main: захищена, основний стовбур
+- refactor/di: гілка ітерації ЛР4, захищена, сюди зливаються всі задачі рефакторингу
+- release/0.3: підтримка версії 0.3, лише виправлення (випуск 0.3.1)
+- refactor/catalog-injection, feature/build-service, hotfix/motor-limits: розробник
+- test/independent-classes: тестувальник
+
+Паттерн впровадження залежностей, аудит коду і завдання рефакторингу описані в docs/DI.md.
 
 ## Як додати власну деталь
 
