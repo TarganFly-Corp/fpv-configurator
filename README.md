@@ -55,13 +55,16 @@
 1. Відкрити catalog/custom-parts.json.
 2. У масив categories додати категорію: ключ, назву і список параметрів (type: Text, Integer, Number, Boolean або Choice; за потреби unit, min, max, options, required).
 3. У масив components додати деталь з полем category, що дорівнює ключу категорії, і значеннями параметрів.
-4. Завантажити файл через JsonCatalogLoader.LoadFile.
+4. Завантажити файл через JsonCatalogLoader.LoadFile: деталі потраплять у каталог, який завантажувач отримав через конструктор.
 
 
 ## Пошук у каталозі
 
 ```csharp
-var catalog = loader.LoadCatalogFile("catalog/custom-parts.json");
+var registry = CategoryRegistry.WithStandardCategories();
+var catalog = new ComponentCatalog();
+var loader = new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry), catalog);
+loader.LoadFile("catalog/custom-parts.json");
 var receivers = catalog.Query(new CatalogQuery(CategoryKey: "Receiver", InStockOnly: true, Sort: CatalogSort.PriceAscending));
 var part = catalog.FindById("RX-1"); // регістр не важливий
 ```
