@@ -87,3 +87,14 @@
 | StackMountRule, PropellerSizeRule, CellCountRule, VideoSystemRule | Services | немає | незалежні |
 | BuildService | Services | IComponentCatalog, IEnumerable&lt;ICompatibilityRule&gt; | залежний |
 | ServiceCollectionExtensions | Services | | корінь композиції |
+
+## 8. Підсумок ітерації ЛР4
+
+| Задача | Результат | PR |
+|---|---|---|
+| RF-1, RF-2 (#36) | IComponentCatalog; JsonCatalogLoader отримує реєстр, фабрику і каталог через конструктор | #42 |
+| RF-3, RF-4 (#37) | Проєкт Services, BuildService з правилами через конструктор, корінь композиції. На рев'ю прибрано конструктор, який сам створював правила | #47 |
+| Т-1, Т-2 (#38, #39) | Тестовані класи визначено, 49 нових тестів незалежних класів без підміни, разом 88 | #48 |
+| Дефект #43 | Виправлено у версії 0.3.1, перенесено в main і refactor/di | #44, #45, #46 |
+
+Клас, обраний для тестування (JsonCatalogLoader), тепер не створює жодної залежності сам. У ЛР5 його і BuildService буде протестовано з моками.
