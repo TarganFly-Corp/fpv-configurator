@@ -70,4 +70,20 @@
 | release/0.3 | тег v0.3-lr3 | підтримка випущеної версії 0.3, лише виправлення | main (PR #45) |
 | hotfix/motor-limits | release/0.3 | виправлення дефекту у версії 0.3 | release/0.3 |
 
-Одночасно підтримуються дві версії: 0.3.x у гілці release/0.3 і нова 0.4 у refactor/di. Виправлення робимо в найстаршій підтримуваній версії і зливаємо «вгору»: release/0.3 → main → refactor/di. Так дефект не повернеться в новій версії.
+## 7. Залежні і незалежні класи після рефакторингу
+
+Розділ заповнює розробник. Незалежний клас не отримує інших сервісів проєкту, тому його тестують без підміни: створюють справжній об'єкт і викликають метод. Залежний клас отримує інші класи через конструктор у вигляді інтерфейсів. У ЛР5 замість них підставляються моки.
+
+| Клас | Проєкт | Залежності (через конструктор) | Вид |
+|---|---|---|---|
+| ParameterDefinition, ComponentCategory | Core | немає | незалежний |
+| Frame, FlightController, Esc, Motor, Propeller, Camera, Vtx, Battery | Components | немає | незалежні |
+| CustomComponent | Components | ComponentCategory (дані, не сервіс) | незалежний |
+| CategoryRegistry | Catalog | немає | незалежний |
+| ComponentCatalog : IComponentCatalog | Catalog | немає | незалежний |
+| ComponentFactory | Catalog | ICategoryRegistry | залежний |
+| JsonCatalogLoader | Catalog | ICategoryRegistry, IComponentFactory, IComponentCatalog | залежний |
+| Build | Services | немає | незалежний |
+| StackMountRule, PropellerSizeRule, CellCountRule, VideoSystemRule | Services | немає | незалежні |
+| BuildService | Services | IComponentCatalog, IEnumerable&lt;ICompatibilityRule&gt; | залежний |
+| ServiceCollectionExtensions | Services | | корінь композиції |
