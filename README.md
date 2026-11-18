@@ -10,7 +10,7 @@
 
 Документи: [Технічне завдання](docs/TZ.md), [План тестування](docs/TestPlan.md), [Правила роботи з історією Git](docs/GitWorkflow.md), [Ретроспектива ЛР3](docs/Retro-LR3.md), [Впровадження залежностей](docs/DI.md).
 
-Випуски: v0.2-lr2, v0.2.1 (виправлення завантажувача JSON, гілка release/0.2), v0.3-lr3.
+Випуски: v0.2-lr2, v0.2.1 (виправлення завантажувача JSON, гілка release/0.2), v0.3-lr3, v0.3.1 (виправлення Motor, гілка release/0.3), v0.4-lr4.
 
 ## Структура рішення
 
@@ -19,16 +19,17 @@
 | FpvConfigurator.Core | Тімлід | Загальні інтерфейси і модель: IComponent, ParameterDefinition, ComponentCategory, ICategoryRegistry, IComponentFactory, ICompatibilityRule |
 | FpvConfigurator.Components | Розробник | Стандартні класи деталей і CustomComponent |
 | FpvConfigurator.Catalog | Розробник | Схеми стандартних категорій, реєстр, фабрика, завантажувач JSON, каталог з пошуком і фільтрами (ComponentCatalog) |
+| FpvConfigurator.Services | Розробник | Збірка Build, правила сумісності, сервіс BuildService, корінь композиції AddFpvConfigurator |
 | FpvConfigurator.Tests | Тестувальник | Модульні тести xUnit |
 | FpvConfigurator.ManualCheck | Тестувальник | Консольна ручна перевірка |
 
 ## Команда і матриця відповідальності
 
-| Роль | GitHub | ЛР2 | ЛР3 |
-|---|---|---|---|
-| Тімлід | targanfly | ТЗ, віхи, дошка Projects, Core, рев'ю і злиття PR | Правила роботи з історією Git, ретроспектива, випуск 0.2.1 |
-| Розробник | SilentProg | Параметри стандартних деталей, CustomComponent, проєкт Catalog | ComponentCatalog, виправлення #29 і #30 |
-| Тестувальник | SilentKroha | Проєкт Tests, план тестування, тести Core і Catalog, дефекти | Регресійні тести, тести каталогу, дефекти #29 і #30 |
+| Роль | GitHub | ЛР2 | ЛР3 | ЛР4 |
+|---|---|---|---|---|
+| Тімлід | targanfly | ТЗ, віхи, дошка Projects, Core, рев'ю і злиття PR | Правила роботи з історією Git, ретроспектива, випуск 0.2.1 | Вибір паттерна DI, аудит коду, завдання рефакторингу, гілки refactor/di і release/0.3, випуски 0.3.1 і 0.4 |
+| Розробник | SilentProg | Параметри стандартних деталей, CustomComponent, проєкт Catalog | ComponentCatalog, виправлення #29 і #30 | IComponentCatalog і впровадження в JsonCatalogLoader, проєкт Services, виправлення #43 |
+| Тестувальник | SilentKroha | Проєкт Tests, план тестування, тести Core і Catalog, дефекти | Регресійні тести, тести каталогу, дефекти #29 і #30 | Тестовані класи і методи, тести незалежних класів без підміни, дефект #43 |
 
 ## Гілки ЛР3
 
@@ -67,4 +68,18 @@ var loader = new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreato
 loader.LoadFile("catalog/custom-parts.json");
 var receivers = catalog.Query(new CatalogQuery(CategoryKey: "Receiver", InStockOnly: true, Sort: CatalogSort.PriceAscending));
 var part = catalog.FindById("RX-1"); // регістр не важливий
+```
+
+## Збірка дрона
+
+Сервіси створює контейнер DI, кожен клас отримує залежності через конструктор (docs/DI.md).
+
+```csharp
+var provider = new ServiceCollection().AddFpvConfigurator().BuildServiceProvider();
+provider.GetRequiredService<JsonCatalogLoader>().LoadFile("catalog/custom-parts.json");
+var service = provider.GetRequiredService<BuildService>();
+
+var build = new Build("5\" фрістайл");
+service.AddPart(build, "fr-2");
+var report = service.Check(build); // report.Problems, report.TotalPrice, report.TotalWeightGrams
 ```
