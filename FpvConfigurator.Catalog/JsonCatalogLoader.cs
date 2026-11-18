@@ -6,6 +6,7 @@ namespace FpvConfigurator.Catalog;
 
 /// <summary>
 /// Завантажує з JSON нові категорії і комплектуючі. Так користувач додає власну деталь без зміни коду.
+/// Реєстр, фабрику і каталог клас отримує через конструктор (Constructor Injection) і сам їх не створює.
 /// </summary>
 public sealed class JsonCatalogLoader
 {
@@ -19,21 +20,23 @@ public sealed class JsonCatalogLoader
 
     private readonly ICategoryRegistry _registry;
     private readonly IComponentFactory _factory;
+    private readonly IComponentCatalog _catalog;
 
-    public JsonCatalogLoader(ICategoryRegistry registry, IComponentFactory factory)
+    public JsonCatalogLoader(ICategoryRegistry registry, IComponentFactory factory, IComponentCatalog catalog)
     {
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
     }
 
+    /// <summary>Читає файл і додає його деталі в каталог. Повертає додані деталі.</summary>
     public IReadOnlyList<IComponent> LoadFile(string path) => Load(File.ReadAllText(path));
 
-    public IReadOnlyList<IComponent> Load(string json) => LoadCatalog(json).All;
-
-    /// <summary>Завантажує файл у каталог з пошуком і фільтрами (ФВ-25…ФВ-27).</summary>
-    public ComponentCatalog LoadCatalogFile(string path) => LoadCatalog(File.ReadAllText(path));
-
-    public ComponentCatalog LoadCatalog(string json)
+    /// <summary>
+    /// Реєструє категорії з JSON і додає деталі в каталог. Деталі потрапляють у каталог
+    /// лише тоді, коли всі деталі файлу створено без помилок. Повертає додані деталі.
+    /// </summary>
+    public IReadOnlyList<IComponent> Load(string json)
     {
         var file = JsonSerializer.Deserialize<CatalogFile>(json, Options)
                    ?? throw new InvalidDataException("Порожній файл каталогу");
@@ -45,11 +48,14 @@ public sealed class JsonCatalogLoader
             _registry.Register(new ComponentCategory(c.Key, c.DisplayName, parameters));
         }
 
-        var catalog = new ComponentCatalog();
+        var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var parts = new List<IComponent>();
         foreach (var dto in file.Components)
         {
-            if (catalog.Contains(dto.Id))
+            if (!ids.Add(dto.Id))
                 throw new InvalidDataException($"Деталь з Id «{dto.Id}» описано двічі");
+            if (_catalog.Contains(dto.Id))
+                throw new InvalidDataException($"Деталь з Id «{dto.Id}» вже є в каталозі");
 
             if (!_registry.TryGet(dto.Category, out var category))
                 throw new InvalidDataException($"Деталь «{dto.Id}»: невідома категорія «{dto.Category}»");
@@ -60,14 +66,17 @@ public sealed class JsonCatalogLoader
             var info = new ComponentInfo(dto.Id, dto.Name, dto.Manufacturer, dto.Price, dto.WeightGrams, dto.InStock);
             try
             {
-                catalog.Add(_factory.Create(dto.Category, info, values));
+                parts.Add(_factory.Create(dto.Category, info, values));
             }
             catch (ArgumentException ex)
             {
                 throw new InvalidDataException($"Деталь «{dto.Id}»: {ex.Message}", ex);
             }
         }
-        return catalog;
+
+        foreach (var part in parts)
+            _catalog.Add(part);
+        return parts;
     }
 
     private static object? ToValue(JsonElement e, ParameterDefinition? definition) => e.ValueKind switch

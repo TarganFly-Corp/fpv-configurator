@@ -26,6 +26,7 @@
     <ProjectReference Include="..\FpvConfigurator.Core\FpvConfigurator.Core.csproj" />
     <ProjectReference Include="..\FpvConfigurator.Components\FpvConfigurator.Components.csproj" />
     <ProjectReference Include="..\FpvConfigurator.Catalog\FpvConfigurator.Catalog.csproj" />
+    <ProjectReference Include="..\FpvConfigurator.Services\FpvConfigurator.Services.csproj" />
   </ItemGroup>
 
 </Project>

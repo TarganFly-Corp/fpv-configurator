@@ -6,7 +6,7 @@ namespace FpvConfigurator.Catalog;
 /// Каталог деталей у пам'яті: пошук за Id, фільтр за категорією і наявністю,
 /// пошук у назві і виробнику, сортування за ціною і вагою (ФВ-25…ФВ-27).
 /// </summary>
-public sealed class ComponentCatalog
+public sealed class ComponentCatalog : IComponentCatalog
 {
     private readonly Dictionary<string, IComponent> _byId = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<IComponent> _items = [];

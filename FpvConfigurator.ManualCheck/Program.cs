@@ -2,6 +2,8 @@
 using FpvConfigurator.Components;
 using FpvConfigurator.Core;
 using System.ComponentModel;
+using FpvConfigurator.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 int passed = 0, failed = 0;
@@ -62,7 +64,8 @@ ExpectThrows<ArgumentOutOfRangeException>("Рама з від'ємною кол�
 
 // 3. Користувацькі деталі з JSON (ЛР2)
 var registry = CategoryRegistry.WithStandardCategories();
-var loader = new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry));
+var catalog = new ComponentCatalog();
+var loader = new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry), catalog);
 var custom = loader.LoadFile(Path.Combine(AppContext.BaseDirectory, "custom-parts.json"));
 
 foreach (var p in custom)
@@ -76,6 +79,36 @@ Check("З JSON завантажено 3 деталі", custom.Count == 3);
 Check("Приймач став користувацькою деталлю", custom.Any(p => p.Type == ComponentType.Custom && p.CategoryKey == "Receiver"));
 Check("Рама з JSON створена як клас Frame", custom.Any(p => p is Frame));
 Check("Категорій у реєстрі стало 10", registry.All.Count == 10);
+Check("Деталі з JSON потрапили в каталог", catalog.Count == 3 && catalog.Contains("RX-1"));
+
+// 4. Збірка через контейнер DI (ЛР4): об'єкти створює контейнер, класи отримують залежності через конструктор
+var provider = new ServiceCollection().AddFpvConfigurator().BuildServiceProvider();
+var appCatalog = provider.GetRequiredService<IComponentCatalog>();
+var buildService = provider.GetRequiredService<BuildService>();
+
+provider.GetRequiredService<JsonCatalogLoader>().LoadFile(Path.Combine(AppContext.BaseDirectory, "custom-parts.json"));
+foreach (var p in parts)
+    appCatalog.Add(p);
+appCatalog.Add(new FlightController("fc-1", "F722 HD", "SpeedyBee", 1900m, 9, "STM32F722", "30.5x30.5", 3, 6, "Betaflight", 5));
+appCatalog.Add(new Esc("esc-1", "BLS 50A 4in1", "SpeedyBee", 2200m, 14, 50, 3, 6, true, "30.5x30.5", "DShot600"));
+appCatalog.Add(new Camera("cam-1", "Ratel 2", "Caddx", 1100m, 5.9, "Analog", 19, "1200TVL", 165));
+appCatalog.Add(new Vtx("vtx-1", "O3 Air Unit", "DJI", 4500m, 36, "DJI", 1000, 5.8, "20x20"));
+
+var build = new Build("5\" фрістайл");
+foreach (var id in new[] { "fr-1", "fc-1", "esc-1", "mt-1", "mt-1", "mt-1", "mt-1", "pr-1", "pr-1", "pr-1", "pr-1", "bt-1", "rx-1" })
+    buildService.AddPart(build, id);
+var report = buildService.Check(build);
+Console.WriteLine($"{build.Name}: {build.Parts.Count} деталей, {report.TotalPrice} грн, {report.TotalWeightGrams:0.#} г");
+
+Check("Контейнер передав сервісу 4 правила", buildService.Rules.Count == 4);
+Check("Збірка без камери і VTX сумісна", report.IsCompatible);
+
+buildService.AddPart(build, "cam-1");
+buildService.AddPart(build, "vtx-1");
+report = buildService.Check(build);
+foreach (var problem in report.Problems)
+    Console.WriteLine($"      {problem}");
+Check("Камера Analog і VTX DJI: одна проблема відеосистеми", report.Problems.Count == 1 && report.Problems[0].Rule == "Відеосистема");
 
 Console.WriteLine($"Разом: {passed} PASS, {failed} FAIL");
 return failed == 0 ? 0 : 1;

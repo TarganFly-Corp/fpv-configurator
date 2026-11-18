@@ -81,13 +81,14 @@ public class ComponentCatalogTests
     }
 
     [Fact]
-    public void LoadCatalogFile_SampleCatalog_SearchesCustomParts()
+    public void LoadFile_SampleCatalog_SearchesCustomParts()
     {
         var registry = CategoryRegistry.WithStandardCategories();
-        var loader = new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry));
+        var catalog = new ComponentCatalog();
+        var loader = new JsonCatalogLoader(registry, ComponentFactory.WithStandardCreators(registry), catalog);
         var path = Path.Combine(AppContext.BaseDirectory, "custom-parts.json");
 
-        var catalog = loader.LoadCatalogFile(path);
+        loader.LoadFile(path);
 
         Assert.Equal(3, catalog.Count);
         Assert.Equal("gps-1", Assert.Single(catalog.Query(new CatalogQuery(CategoryKey: "gps"))).Id);
