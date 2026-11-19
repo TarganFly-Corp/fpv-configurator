@@ -1,0 +1,5 @@
+# Одне ім'я і одна адреса для кожного учасника в git shortlog, git log і git blame.
+# Формат: Правильне ім'я <правильна адреса> Ім'я в коміті <адреса в коміті>
+Володимир Лампарт <targanfly.tl@proton.me>
+Юрій Савонік <savoniksteam@ukr.net> <77963720+SilentProg@users.noreply.github.com>
+SilentKroha <yurii.savonik@kgemt.org.ua> <124258357+SilentKroha@users.noreply.github.com>
