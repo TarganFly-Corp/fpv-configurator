@@ -1,6 +1,6 @@
 # План тестування: FPV Configurator
 
-Версія 1.2 (ЛР4). Автор: тестувальник.
+Версія 1.3 (ЛР5). Автор: тестувальник.
 
 ## 1. Що тестуємо
 
@@ -96,9 +96,9 @@ Windows 11, .NET SDK 10, Visual Studio 2026, xUnit 2.9. Запуск усіх т
 | ComponentCatalog | Catalog | немає | незалежний | Add, FindById, Query | TC-27…TC-33 (ЛР3) |
 | Build | Services | немає | незалежний | конструктор, Add, Remove, CountOf, LimitFor, TotalPrice, TotalWeightGrams | TC-41…TC-46, TC-55 |
 | StackMountRule, PropellerSizeRule, CellCountRule, VideoSystemRule | Services | немає | незалежні | Check | TC-47…TC-54 |
-| ComponentFactory | Catalog | ICategoryRegistry | залежний | Create | ЛР5 (Moq) |
-| JsonCatalogLoader | Catalog | ICategoryRegistry, IComponentFactory, IComponentCatalog | залежний | Load | ЛР5 (Moq) |
-| BuildService | Services | IComponentCatalog, ICompatibilityRule | залежний | AddPart, Check | ЛР5 (Moq) |
+| ComponentFactory | Catalog | ICategoryRegistry | залежний | Create | ЛР6 (Moq) |
+| JsonCatalogLoader | Catalog | ICategoryRegistry, IComponentFactory, IComponentCatalog | залежний | Load | ЛР6 (Moq) |
+| BuildService | Services | IComponentCatalog, ICompatibilityRule | залежний | AddPart, Check | ЛР6 (Moq) |
 
 ## 7. Звіт про тестування ЛР4
 
@@ -116,3 +116,17 @@ Windows 11, .NET SDK 10, Visual Studio 2026, xUnit 2.9. Запуск усіх т
 Знайдений дефект: #43, Motor приймав діапазон банок понад 12S і від'ємний струм, хоча схема категорії це забороняє. Виправлено у версії 0.3.1 (гілка release/0.3) і перенесено в main та refactor/di.
 
 Ручна перевірка ManualCheck: 20 PASS, 0 FAIL, серед них збірка через контейнер DI і одна проблема відеосистеми для камери Analog з VTX DJI.
+
+## 8. ЛР5: перевірка випуску 0.5
+
+У ЛР5 нових вимог немає. Код Catalog розкладено по папках, допоміжний клас тестів TestParts перенесено в папку TestData, тому всі 88 тестів мають проходити без змін. Перед випуском тестувальник перевіряє сам архів, який отримає користувач: розпаковує його в окрему папку поза репозиторієм і збирає там рішення.
+
+| ID | Що перевіряємо | Як | Очікуваний результат |
+|---|---|---|---|
+| TC-56 | Вміст архіву | tar -tf архів.zip | є шість проєктів, catalog, docs, README.md і FpvConfigurator.slnx; немає .git, bin, obj, .gitattributes, .gitignore, .mailmap |
+| TC-57 | Збірка з архіву | dotnet build у розпакованій папці | 0 помилок |
+| TC-58 | Тести з архіву | dotnet test у розпакованій папці | 88 пройдено, 0 провалено |
+| TC-59 | Ручна перевірка з архіву | dotnet run --project FpvConfigurator.ManualCheck | 20 PASS, 0 FAIL |
+| TC-60 | Підписи | git verify-commit для коміту злиття, git verify-tag v0.5-lr5 | Good signature: коміт підписано ключем GitHub, тег ключем тімліда |
+
+Після перевірки розпаковану папку і архіви видаляємо, а робочу копію очищаємо командою git clean (спочатку з ключем -n).

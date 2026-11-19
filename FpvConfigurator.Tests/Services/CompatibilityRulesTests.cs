@@ -1,5 +1,6 @@
 ﻿using FpvConfigurator.Core;
 using FpvConfigurator.Services.Rules;
+using FpvConfigurator.Tests.TestData;
 
 namespace FpvConfigurator.Tests.Services;
 
