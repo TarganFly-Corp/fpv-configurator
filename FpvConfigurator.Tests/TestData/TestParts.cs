@@ -1,9 +1,9 @@
 ﻿using FpvConfigurator.Components;
 using FpvConfigurator.Core;
 
-namespace FpvConfigurator.Tests.Services;
+namespace FpvConfigurator.Tests.TestData;
 
-/// <summary>Справжні деталі для тестів збірки і правил. Підміни класів немає.</summary>
+/// <summary>Справжні деталі для тестів. Спільні для тестів Services і Catalog.</summary>
 internal static class TestParts
 {
     public static Frame Frame(string mount = "30.5x30.5", double maxProp = 5.1) =>
