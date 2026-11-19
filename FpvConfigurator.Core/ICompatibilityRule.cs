@@ -1,6 +1,6 @@
 ﻿namespace FpvConfigurator.Core;
 
-/// <summary>Правило сумісності комплектуючих у збірці. Реалізації з'являться в ЛР4.</summary>
+/// <summary>Правило сумісності комплектуючих у збірці. Реалізації лежать у FpvConfigurator.Services/Rules.</summary>
 public interface ICompatibilityRule
 {
     /// <summary>Коротка назва правила для звіту.</summary>
