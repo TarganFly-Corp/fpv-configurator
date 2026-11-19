@@ -18,7 +18,7 @@
 |---|---|---|
 | FpvConfigurator.Core | Тімлід | Загальні інтерфейси і модель: IComponent, ParameterDefinition, ComponentCategory, ICategoryRegistry, IComponentFactory, ICompatibilityRule |
 | FpvConfigurator.Components | Розробник | Стандартні класи деталей і CustomComponent |
-| FpvConfigurator.Catalog | Розробник | Схеми стандартних категорій, реєстр, фабрика, завантажувач JSON, каталог з пошуком і фільтрами (ComponentCatalog) |
+| FpvConfigurator.Catalog | Розробник | Папки: Categories (схеми стандартних категорій, реєстр), Factory (фабрика деталей), Loading (завантажувач JSON), Search (каталог з пошуком і фільтрами ComponentCatalog, запит, сортування) |
 | FpvConfigurator.Services | Розробник | Збірка Build, правила сумісності, сервіс BuildService, корінь композиції AddFpvConfigurator |
 | FpvConfigurator.Tests | Тестувальник | Модульні тести xUnit |
 | FpvConfigurator.ManualCheck | Тестувальник | Консольна ручна перевірка |
