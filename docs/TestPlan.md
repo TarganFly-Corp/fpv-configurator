@@ -1,6 +1,6 @@
 # План тестування: FPV Configurator
 
-Версія 1.3 (ЛР5). Автор: тестувальник.
+Версія 1.4 (ЛР6). Автор: тестувальник.
 
 ## 1. Що тестуємо
 
@@ -14,10 +14,11 @@
 4. Знайдений дефект оформлюється як Issue з міткою bug, картка в Projects переходить у статус «Помилка».
 5. У ЛР4 тестуються лише незалежні класи і без підміни: тест створює справжні об'єкти Frame, Motor, Battery тощо.
 6. Межові значення перевіряються парами: значення на межі схеми категорії приймається, сусіднє за межею відхиляється.
+7. З ЛР6 залежні класи тестуються з макетами Moq замість справжніх залежностей (docs/Mocks.md). Однакові за схемою тести об'єднуються в один [Theory] з набором вхідних даних.
 
 ## 3. Середовище
 
-Windows 11, .NET SDK 10, Visual Studio 2026, xUnit 2.9. Запуск усіх тестів: dotnet test FpvConfigurator.slnx.
+Windows 11, .NET SDK 10, Visual Studio 2026, xUnit 2.9, Moq 4.21. Запуск усіх тестів: dotnet test FpvConfigurator.slnx.
 
 ## 4. Критерії
 
@@ -129,4 +130,41 @@ Windows 11, .NET SDK 10, Visual Studio 2026, xUnit 2.9. Запуск усіх т
 | TC-59 | Ручна перевірка з архіву | dotnet run --project FpvConfigurator.ManualCheck | 20 PASS, 0 FAIL |
 | TC-60 | Підписи | git verify-commit для коміту злиття, git verify-tag v0.5-lr5 | Good signature: коміт підписано ключем GitHub, тег ключем тімліда |
 
-Після перевірки розпаковану папку і архіви видаляємо, а робочу копію очищаємо командою git clean (спочатку з ключем -n).
+## 9. ЛР6: методи для тестування з макетами і набори вхідних даних
+
+### 9.1 Тести ЛР4, перероблені на набори даних
+
+| Було | Стало | Набір вхідних даних |
+|---|---|---|
+| 4 окремі тести StackMount_* | StackMount_Check_ReturnsExpectedProblemCount | 5 комбінацій кріплення рами, контролера і ESC, ESC 4-в-1 або окремий; очікувано 0, 1 або 2 проблеми |
+| 2 тести PropellerSize_* | PropellerSize_FourPropsOnFrame51_ReturnsExpectedProblemCount | пропелер 3.0, 5.1 (межа), 5.2, 7.0" на рамі 5.1" |
+| 2 тести CellCount_* | CellCount_Battery_ReturnsExpectedProblemCount і перевірка назв деталей у тексті проблем | батарея 6S, 4S (нижня межа мотора), 3S, 6S проти 2…4S |
+| VideoSystem з 2 наборами | той самий тест, 4 набори | додано Analog+Analog і HDZero+Walksnail |
+| 2 тести AllRules_* | AllRules_CompatibleBuild_NoProblems | лише рама; повний набір з 14 деталей |
+| Add_FifthMotor, Add_SecondFrame | Add_OverCategoryLimit_ThrowsAndKeepsLimit | усі 8 стандартних категорій з їхнім лімітом (1 або 4) |
+| Constructor_EmptyName_Throws | той самий тест, 3 набори | "", " ", табуляція |
+
+### 9.2 Залежні класи: методи і набори даних
+
+| ID | Клас і метод | Макети | Вхідні дані | Очікуваний результат |
+|---|---|---|---|---|
+| TC-61 | BuildService.AddPart | IComponentCatalog | mt-1, MT-1 | деталь з каталогу у збірці, FindById викликано один раз |
+| TC-62 | BuildService.AddPart | IComponentCatalog | mt-404, порожній Id | KeyNotFoundException з Id, збірка порожня |
+| TC-63 | BuildService.AddPart | IComponentCatalog | п'ятий мотор у збірці з 4 моторами | InvalidOperationException, моторів 4 |
+| TC-64 | BuildService.Check | ICompatibilityRule, IComponentCatalog | кількість проблем по правилах: [], [0,0], [1,0], [2,3], [0,0,0,1] | 0, 0, 1, 5, 1 проблем; кожне правило викликано один раз; каталог не викликано |
+| TC-65 | BuildService.Check | ICompatibilityRule | одне правило з однією проблемою; рама і батарея | проблема з назвою правила, 2700 грн, 320 г |
+| TC-66 | JsonCatalogLoader.Load | ICategoryRegistry, IComponentFactory, IComponentCatalog | 1, 3, 5 деталей у файлі | Add викликано стільки ж разів, Register жодного |
+| TC-67 | JsonCatalogLoader.Load | ті самі | фабрика відхиляє деталь: 1 з 1, 1-шу з 3, 3-тю з 3 | InvalidDataException з Id, Add жодного разу |
+| TC-68 | JsonCatalogLoader.Load | ті самі | у каталозі вже є fr-1 або fr-3 | InvalidDataException з Id, Add жодного разу |
+| TC-69 | JsonCatalogLoader.Load | ті самі | файл лише з категорією Receiver | Register один раз, фабрика і каталог не викликані |
+| TC-70 | ComponentFactory.Create | ICategoryRegistry | категорія Gimbal, осей 1 і 3 | CustomComponent |
+| TC-71 | ComponentFactory.Create | ICategoryRegistry | осей 0 і 4 | ArgumentException з назвою категорії |
+| TC-72 | ComponentFactory.Create | ICategoryRegistry | реєстр кидає KeyNotFoundException для Gimbal, frame | виняток не перехоплюється |
+| TC-73 | ComponentFactory.RegisterCreator | ICategoryRegistry | власний «конструктор» для Gimbal | Create повертає його деталь |
+| TC-74 | BuildLibrary.Save | IBuildStorage | порожня збірка; рама і мотор; повний набір | у сховище записано назву і Id у порядку додавання |
+| TC-75 | BuildLibrary.Save | IBuildStorage | назва зайнята, overwrite false і true | false: InvalidOperationException, Save не викликано; true: Save один раз |
+| TC-76 | BuildLibrary.Open | IBuildStorage, IComponentCatalog | збірки з 3, 1 і 0 деталей | деталі з каталогу в тому самому порядку |
+| TC-77 | BuildLibrary.Open | IBuildStorage | невідома назва | KeyNotFoundException |
+| TC-78 | BuildLibrary.Names | IBuildStorage | [b, A, c]; [Racer, freestyle, Cine]; [] | за абеткою без урахування регістру |
+
+Тести лежать у FpvConfigurator.Tests/Mocks. Спочатку це будуть просі пустушки з атрибутом Skip: вхідні дані, дія і перевірки є, а місце для майбутніх макетів позначено TODO для розробника (#63).
