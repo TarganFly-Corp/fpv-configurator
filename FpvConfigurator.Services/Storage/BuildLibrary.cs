@@ -53,9 +53,10 @@ public sealed class BuildLibrary
         var build = new Build(saved.Name);
         foreach (var id in saved.PartIds)
         {
-            var part = _catalog.FindById(id);
-            if (part is not null)
-                build.Add(part);
+            var part = _catalog.FindById(id)
+           ?? throw new InvalidDataException(
+               $"У збірці «{saved.Name}» є деталь «{id}», якої вже немає в каталозі");
+            build.Add(part);
         }
         return build;
     }
