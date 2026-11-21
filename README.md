@@ -8,7 +8,7 @@
 
 Стек: .NET 10, C#, Blazor, xUnit + Moq.
 
-Документи: [Технічне завдання](docs/TZ.md), [План тестування](docs/TestPlan.md), [Правила роботи з історією Git](docs/GitWorkflow.md), [Ретроспектива ЛР3](docs/Retro-LR3.md), [Впровадження залежностей](docs/DI.md).
+Документи: [Технічне завдання](docs/TZ.md), [План тестування](docs/TestPlan.md), [Правила роботи з історією Git](docs/GitWorkflow.md), [Ретроспектива ЛР3](docs/Retro-LR3.md), [Впровадження залежностей](docs/DI.md), [Макети в тестах](docs/Mocks.md).
 
 Випуски: v0.2-lr2, v0.2.1 (виправлення завантажувача JSON, гілка release/0.2), v0.3-lr3, v0.3.1 (виправлення Motor, гілка release/0.3), v0.4-lr4, v0.5-lr5 (підписаний тег, архіви zip і tar.gz у GitHub Releases).
 
