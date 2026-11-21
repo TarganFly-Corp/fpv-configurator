@@ -166,5 +166,33 @@ Windows 11, .NET SDK 10, Visual Studio 2026, xUnit 2.9, Moq 4.21. Запуск �
 | TC-76 | BuildLibrary.Open | IBuildStorage, IComponentCatalog | збірки з 3, 1 і 0 деталей | деталі з каталогу в тому самому порядку |
 | TC-77 | BuildLibrary.Open | IBuildStorage | невідома назва | KeyNotFoundException |
 | TC-78 | BuildLibrary.Names | IBuildStorage | [b, A, c]; [Racer, freestyle, Cine]; [] | за абеткою без урахування регістру |
+| TC-79 | BuildLibrary.Open | IBuildStorage, IComponentCatalog | у збірці деталь, якої немає в каталозі: [fr-1, mt-404], [gone-1], [fr-1, mt-1, pr-9, mt-1] | InvalidDataException з Id деталі і назвою збірки (дефект #69) |
 
-Тести лежать у FpvConfigurator.Tests/Mocks. Спочатку це будуть просі пустушки з атрибутом Skip: вхідні дані, дія і перевірки є, а місце для майбутніх макетів позначено TODO для розробника (#63).
+### 9.3 Класи-обгортки
+
+Повторюване налаштування макетів винесено в FpvConfigurator.Tests/Mocks/Wrappers.
+
+| Обгортка | Що підміняє | Навіщо |
+|---|---|---|
+| CatalogMock | IComponentCatalog | каталог з переданих деталей; FindById і Contains без урахування регістру; VerifyAdded, VerifyLookups |
+| RuleMock | ICompatibilityRule | правило з назвою і готовим списком проблем; набір правил за кількістю проблем |
+| StorageMock | IBuildStorage | сховище з переданими збірками; усе, що передали в Save, лежить у Written |
+| LoaderUnderTest | ICategoryRegistry, IComponentFactory, IComponentCatalog | JsonCatalogLoader з трьома макетами; FactoryRejects і CatalogHas для наборів з помилками |
+
+## 10. Звіт про тестування ЛР6
+
+Прогін: dotnet test на гілці test/moq-tests після злиття PR #68 (макети від розробника) і PR #70 (виправлення #69).
+
+| Набір | Файл | Тестів | Результат |
+|---|---|---|---|
+| BuildService з макетами (TC-61…TC-65) | Mocks/BuildServiceMockTests.cs | 15 | пройдено |
+| JsonCatalogLoader з макетами (TC-66…TC-69) | Mocks/JsonCatalogLoaderMockTests.cs | 12 | пройдено |
+| ComponentFactory з макетом реєстру (TC-70…TC-73) | Mocks/ComponentFactoryMockTests.cs | 7 | пройдено |
+| BuildLibrary з макетами (TC-74…TC-79) | Mocks/BuildLibraryMockTests.cs | 16 | до виправлення 3 провалено (TC-79), після #70 пройдено |
+| Тести ЛР4, перероблені на набори даних | Services/BuildTests.cs, Services/CompatibilityRulesTests.cs | 36 (було 20) | пройдено |
+| Тести ЛР2…ЛР4 без змін | Core/*, Catalog/*, Components/* | 68 | пройдено |
+| Разом | | 154 | 154 пройдено, 0 провалено, 0 пропущено |
+
+Знайдений дефект: #69. BuildLibrary.Open мовчки пропускав деталі, яких уже немає в каталозі, і відкривав неповну збірку без жодного повідомлення. Знайдено набором даних TC-79, де макет каталогу не знає одного з Id. Виправлено в PR #70: Open кидає InvalidDataException з назвою збірки і Id деталі.
+
+Ручна перевірка ManualCheck: 20 PASS, 0 FAIL, без змін після ЛР5.
