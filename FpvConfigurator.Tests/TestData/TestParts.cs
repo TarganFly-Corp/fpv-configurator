@@ -37,6 +37,21 @@ internal static class TestParts
                                    new Dictionary<string, object?> { ["chip"] = "u-blox M10" });
     }
 
+    /// <summary>Типова деталь стандартної категорії (для наборів даних за типом).</summary>
+    public static IComponent OfType(ComponentType type) => type switch
+    {
+        ComponentType.Frame => Frame(),
+        ComponentType.FlightController => Fc(),
+        ComponentType.Esc => Esc(),
+        ComponentType.Motor => Motor(),
+        ComponentType.Propeller => Prop(),
+        ComponentType.Camera => Camera(),
+        ComponentType.Vtx => Vtx(),
+        ComponentType.Battery => Battery(),
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Лише стандартні категорії")
+    };
+
+
     /// <summary>Повний сумісний набір: 14 деталей.</summary>
     public static IComponent[] FullSet() =>
     [

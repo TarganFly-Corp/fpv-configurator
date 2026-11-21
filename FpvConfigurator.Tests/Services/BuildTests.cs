@@ -4,7 +4,7 @@ using FpvConfigurator.Tests.TestData;
 
 namespace FpvConfigurator.Tests.Services;
 
-/// <summary>Тести незалежного класу Build (ФВ-11, ФВ-14).</summary>
+/// <summary>Тести незалежного класу Build (ФВ-11, ФВ-14). ЛР6: ліміти категорій і порожня назва перевіряються наборами даних.</summary>
 public class BuildTests
 {
     [Fact]
@@ -19,26 +19,32 @@ public class BuildTests
         Assert.Equal(4, build.CountOf(ComponentType.Motor));
     }
 
-    [Fact]
-    public void Add_FifthMotor_ThrowsAndKeepsFour()
+    /// <summary>TC-42, TC-43: деталь понад ліміт категорії. Ліміти: рама, контролер, ESC, камера, VTX, батарея 1; мотори і пропелери 4.</summary>
+    public static TheoryData<ComponentType, int> CategoryLimits => new()
+    {
+        { ComponentType.Frame, 1 },
+        { ComponentType.FlightController, 1 },
+        { ComponentType.Esc, 1 },
+        { ComponentType.Motor, 4 },
+        { ComponentType.Propeller, 4 },
+        { ComponentType.Camera, 1 },
+        { ComponentType.Vtx, 1 },
+        { ComponentType.Battery, 1 }
+    };
+
+    [Theory]
+    [MemberData(nameof(CategoryLimits))]
+    public void Add_OverCategoryLimit_ThrowsAndKeepsLimit(ComponentType type, int limit)
     {
         var build = new Build();
-        for (var i = 0; i < 4; i++)
-            build.Add(TestParts.Motor());
+        for (var i = 0; i < limit; i++)
+            build.Add(TestParts.OfType(type));
 
-        var ex = Assert.Throws<InvalidOperationException>(() => build.Add(TestParts.Motor()));
+        var ex = Assert.Throws<InvalidOperationException>(() => build.Add(TestParts.OfType(type)));
 
-        Assert.Contains("Motor", ex.Message);
-        Assert.Equal(4, build.CountOf(ComponentType.Motor));
-    }
-
-    [Fact]
-    public void Add_SecondFrame_Throws()
-    {
-        var build = new Build();
-        build.Add(TestParts.Frame());
-
-        Assert.Throws<InvalidOperationException>(() => build.Add(TestParts.Frame("20x20")));
+        Assert.Contains(type.ToString(), ex.Message);
+        Assert.Equal(limit, build.CountOf(type));
+        Assert.Equal(limit, Build.LimitFor(type));
     }
 
     [Fact]
@@ -85,9 +91,12 @@ public class BuildTests
         Assert.Equal(0, build.TotalWeightGrams);
     }
 
-    [Fact]
-    public void Constructor_EmptyName_Throws()
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("\t")]
+    public void Constructor_EmptyName_Throws(string name)
     {
-        Assert.Throws<ArgumentException>(() => new Build(" "));
+        Assert.Throws<ArgumentException>(() => new Build(name));
     }
 }
