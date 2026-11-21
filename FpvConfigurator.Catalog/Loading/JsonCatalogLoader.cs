@@ -29,9 +29,22 @@ public sealed class JsonCatalogLoader
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
     }
 
+    /// <remarks>
+    /// Тестові дані:
+    /// 1. Файл catalog/custom-parts.json (3 деталі) і шлях до файлу, якого немає.
+    /// </remarks>
     /// <summary>Читає файл і додає його деталі в каталог. Повертає додані деталі.</summary>
     public IReadOnlyList<IComponent> LoadFile(string path) => Load(File.ReadAllText(path));
 
+    /// <remarks>
+    /// Тестові дані:
+    /// 1. Файл з 1, 3 і 5 коректними деталями: Add у каталозі викликано стільки ж разів.
+    /// 2. Фабрика відхиляє першу, середню або останню деталь: InvalidDataException з Id, Add не викликано жодного разу.
+    /// 3. Деталь, Id якої вже є в каталозі (Contains повертає true), і повторний Id у самому файлі в іншому регістрі.
+    /// 4. Деталь невідомої категорії (TryGet повертає false).
+    /// 5. Файл лише з категоріями, без деталей: Register для кожної категорії, фабрика і каталог не викликаються.
+    /// 6. Макети: ICategoryRegistry (TryGet з out, Register), IComponentFactory (Create), IComponentCatalog (Contains, Add).
+    /// </remarks>
     /// <summary>
     /// Реєструє категорії з JSON і додає деталі в каталог. Деталі потрапляють у каталог
     /// лише тоді, коли всі деталі файлу створено без помилок. Повертає додані деталі.
