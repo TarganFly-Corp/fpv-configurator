@@ -2,6 +2,7 @@
 using FpvConfigurator.Core;
 using FpvConfigurator.Services;
 using FpvConfigurator.Services.Storage;
+using FpvConfigurator.Tests.Mocks.Wrappers;
 using FpvConfigurator.Tests.TestData;
 using Moq;
 
@@ -26,65 +27,55 @@ public class BuildLibraryMockTests
         var build = new Build(name);
         foreach (var part in parts)
             build.Add(part);
-        // Макет сховища (розробник): назва вільна
-        var storage = new Mock<IBuildStorage>();
-        storage.Setup(s => s.Exists(name)).Returns(false);
-        var library = new BuildLibrary(storage.Object, Mock.Of<IComponentCatalog>());
+        var storage = new StorageMock(new SavedBuild("Інша", []));
+        var library = new BuildLibrary(storage.Object, new CatalogMock().Object);
 
         library.Save(build);
 
-        var ids = parts.Select(p => p.Id).ToList();
-        storage.Verify(s => s.Save(It.Is<SavedBuild>(b => b.Name == name && b.PartIds.SequenceEqual(ids))), Times.Once());
+        var written = Assert.Single(storage.Written);
+        Assert.Equal(name, written.Name);
+        Assert.Equal(parts.Select(p => p.Id), written.PartIds);
     }
 
-    /// <summary>TC-75: назва зайнята. Без overwrite помилка і нічого не записано, з overwrite перезапис.</summary>
+    /// <summary>TC-75: назва зайнята (і в іншому регістрі). Без overwrite помилка і нічого не записано, з overwrite перезапис.</summary>
     [Theory]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    public void Save_NameTaken_DependsOnOverwrite(bool overwrite, bool expectThrow)
+    [InlineData("Freestyle 5", false, true)]
+    [InlineData("FREESTYLE 5", false, true)]
+    [InlineData("Freestyle 5", true, false)]
+    public void Save_NameTaken_DependsOnOverwrite(string name, bool overwrite, bool expectThrow)
     {
-        var build = new Build("Freestyle 5");
-        // Макет сховища (розробник): назва вже зайнята
-        var storage = new Mock<IBuildStorage>();
-        storage.Setup(s => s.Exists("Freestyle 5")).Returns(true);
-        var library = new BuildLibrary(storage.Object, Mock.Of<IComponentCatalog>());
+        var storage = new StorageMock(new SavedBuild("Freestyle 5", ["fr-1"]));
+        var library = new BuildLibrary(storage.Object, new CatalogMock().Object);
 
-        var ex = Record.Exception(() => library.Save(build, overwrite));
+        var ex = Record.Exception(() => library.Save(new Build(name), overwrite));
 
         Assert.Equal(expectThrow, ex is InvalidOperationException);
-        storage.Verify(s => s.Save(It.IsAny<SavedBuild>()), expectThrow ? Times.Never() : Times.Once());
+        Assert.Equal(expectThrow ? 0 : 1, storage.Written.Count);
     }
 
     /// <summary>TC-76: збірка відкривається, деталі знову беруться з каталогу.</summary>
     [Theory]
-    [InlineData("Freestyle 5", new[] { "fr-1", "mt-1", "mt-1" }, 3)]
-    [InlineData("Лише рама", new[] { "fr-1" }, 1)]
-    [InlineData("Порожня", new string[0], 0)]
-    public void Open_SavedBuild_PartsTakenFromCatalog(string name, string[] partIds, int expectedParts)
+    [InlineData("Freestyle 5", new[] { "fr-1", "mt-1", "mt-1" })]
+    [InlineData("Лише рама", new[] { "fr-1" })]
+    [InlineData("Порожня", new string[0])]
+    public void Open_SavedBuild_PartsTakenFromCatalog(string name, string[] partIds)
     {
-        // Макети (розробник): сховище повертає збірку, каталог знає fr-1 і mt-1
-        var storage = new Mock<IBuildStorage>();
-        storage.Setup(s => s.Load(name)).Returns(new SavedBuild(name, partIds));
-        var catalog = new Mock<IComponentCatalog>();
-        catalog.Setup(c => c.FindById("fr-1")).Returns(TestParts.Frame());
-        catalog.Setup(c => c.FindById("mt-1")).Returns(TestParts.Motor());
+        var storage = new StorageMock(new SavedBuild(name, partIds));
+        var catalog = new CatalogMock(TestParts.Frame(), TestParts.Motor());
         var library = new BuildLibrary(storage.Object, catalog.Object);
 
         var build = library.Open(name);
 
         Assert.Equal(name, build.Name);
-        Assert.Equal(expectedParts, build.Parts.Count);
         Assert.Equal(partIds, build.Parts.Select(p => p.Id));
-        catalog.Verify(c => c.FindById(It.IsAny<string>()), Times.Exactly(partIds.Length));
+        catalog.VerifyLookups(Times.Exactly(partIds.Length));
     }
 
     /// <summary>TC-77: збірки з такою назвою немає.</summary>
     [Fact]
     public void Open_UnknownName_ThrowsKeyNotFound()
     {
-        // Макет сховища (розробник): Load повертає null
-        var storage = new Mock<IBuildStorage>();
-        storage.Setup(s => s.Load(It.IsAny<string>())).Returns((SavedBuild?)null);
+        var storage = new StorageMock(new SavedBuild("Freestyle 5", []));
         var catalog = new Mock<IComponentCatalog>(MockBehavior.Strict);
         var library = new BuildLibrary(storage.Object, catalog.Object);
 
@@ -100,11 +91,10 @@ public class BuildLibraryMockTests
     [InlineData(new string[0], new string[0])]
     public void Names_FromStorage_SortedAlphabetically(string[] stored, string[] expected)
     {
-        // Макет сховища (розробник)
-        var storage = new Mock<IBuildStorage>();
-        storage.Setup(s => s.ListNames()).Returns(stored);
-        var library = new BuildLibrary(storage.Object, Mock.Of<IComponentCatalog>());
+        var storage = new StorageMock(stored.Select(n => new SavedBuild(n, [])).ToArray());
+        var library = new BuildLibrary(storage.Object, new CatalogMock().Object);
 
         Assert.Equal(expected, library.Names());
     }
+
 }
