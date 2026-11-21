@@ -8,7 +8,7 @@ using Moq;
 
 namespace FpvConfigurator.Tests.Mocks;
 
-/// <summary>BuildLibrary (ФВ-15) з макетами сховища і каталогу (TC-74…TC-78).</summary>
+/// <summary>BuildLibrary (ФВ-15) з макетами сховища і каталогу (TC-74…TC-79).</summary>
 public class BuildLibraryMockTests
 {
     /// <summary>Набори для TC-74: назва збірки і деталі в ній.</summary>
@@ -97,4 +97,20 @@ public class BuildLibraryMockTests
         Assert.Equal(expected, library.Names());
     }
 
+    /// <summary>TC-79: у збереженій збірці є деталь, якої вже немає в каталозі.</summary>
+    [Theory]
+    [InlineData(new[] { "fr-1", "mt-404" }, "mt-404")]
+    [InlineData(new[] { "gone-1" }, "gone-1")]
+    [InlineData(new[] { "fr-1", "mt-1", "pr-9", "mt-1" }, "pr-9")]
+    public void Open_PartMissingInCatalog_ThrowsWithPartId(string[] partIds, string missingId)
+    {
+        var storage = new StorageMock(new SavedBuild("Стара збірка", partIds));
+        var catalog = new CatalogMock(TestParts.Frame(), TestParts.Motor());
+        var library = new BuildLibrary(storage.Object, catalog.Object);
+
+        var ex = Assert.Throws<InvalidDataException>(() => library.Open("Стара збірка"));
+
+        Assert.Contains(missingId, ex.Message);
+        Assert.Contains("Стара збірка", ex.Message);
+    }
 }
