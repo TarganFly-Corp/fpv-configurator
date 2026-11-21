@@ -43,6 +43,11 @@ public sealed class ComponentFactory : IComponentFactory
         return f;
     }
 
+    /// <remarks>
+    /// Тестові дані:
+    /// 1. Категорія, яку реєстр знає: «конструктор» використовується в Create.
+    /// 2. Категорія, якої реєстр не знає (Get кидає KeyNotFoundException), і null замість «конструктора».
+    /// </remarks>
     public void RegisterCreator(string categoryKey, Creator creator)
     {
         ArgumentNullException.ThrowIfNull(creator);
@@ -50,6 +55,14 @@ public sealed class ComponentFactory : IComponentFactory
         _creators[categoryKey] = creator;
     }
 
+    /// <remarks>
+    /// Тестові дані:
+    /// 1. Стандартна категорія з коректними параметрами: об'єкт свого класу (Frame, Motor тощо).
+    /// 2. Категорія без «конструктора»: CustomComponent.
+    /// 3. Значення на межах схеми і за ними (для Integer min…max: min, max, min − 1, max + 1): за межами ArgumentException з назвою категорії.
+    /// 4. Невідома категорія: виняток реєстру KeyNotFoundException не перехоплюється.
+    /// 5. Макет ICategoryRegistry: Get(ключ) повертає категорію або кидає виняток.
+    /// </remarks>
     public IComponent Create(string categoryKey, ComponentInfo info, IReadOnlyDictionary<string, object?> parameters)
     {
         ArgumentNullException.ThrowIfNull(info);
