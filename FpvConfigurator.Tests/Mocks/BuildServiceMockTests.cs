@@ -10,30 +10,35 @@ namespace FpvConfigurator.Tests.Mocks;
 public class BuildServiceMockTests
 {
     /// <summary>TC-61: деталь є в каталозі, Id у різному регістрі.</summary>
-    [Theory(Skip = Stub.Reason)]
+    [Theory]
     [InlineData("mt-1")]
     [InlineData("MT-1")]
     public void AddPart_PartInCatalog_AddsToBuild(string partId)
     {
         var motor = TestParts.Motor();
-        // TODO (розробник, #63): макет каталогу: на запит partId повертає мотор
-        BuildService service = null!;
+        // Макет каталогу (розробник): на запит partId повертає мотор
+        var catalog = new Mock<IComponentCatalog>();
+        catalog.Setup(c => c.FindById(partId)).Returns(motor);
+        var service = new BuildService(catalog.Object, []);
         var build = new Build();
 
         var added = service.AddPart(build, partId);
 
         Assert.Same(motor, added);
         Assert.Same(motor, Assert.Single(build.Parts));
+        catalog.Verify(c => c.FindById(partId), Times.Once());
     }
 
     /// <summary>TC-62: деталі немає в каталозі.</summary>
-    [Theory(Skip = Stub.Reason)]
+    [Theory]
     [InlineData("mt-404")]
     [InlineData("")]
     public void AddPart_PartNotInCatalog_ThrowsAndBuildUnchanged(string partId)
     {
-        // TODO (розробник, #63): макет каталогу: будь-який Id не знайдено
-        BuildService service = null!;
+        // Макет каталогу (розробник): будь-який Id не знайдено
+        var catalog = new Mock<IComponentCatalog>();
+        catalog.Setup(c => c.FindById(It.IsAny<string>())).Returns((IComponent?)null);
+        var service = new BuildService(catalog.Object, []);
         var build = new Build();
 
         var ex = Assert.Throws<KeyNotFoundException>(() => service.AddPart(build, partId));
@@ -43,14 +48,16 @@ public class BuildServiceMockTests
     }
 
     /// <summary>TC-63: деталь є в каталозі, але її категорія у збірці вже заповнена.</summary>
-    [Fact(Skip = Stub.Reason)]
+    [Fact]
     public void AddPart_CategoryFull_ThrowsFromBuild()
     {
         var build = new Build();
         for (var i = 0; i < 4; i++)
             build.Add(TestParts.Motor());
-        // TODO (розробник, #63): макет каталогу
-        BuildService service = null!;
+        // Макет каталогу (розробник)
+        var catalog = new Mock<IComponentCatalog>();
+        catalog.Setup(c => c.FindById("mt-1")).Returns(TestParts.Motor());
+        var service = new BuildService(catalog.Object, []);
 
         Assert.Throws<InvalidOperationException>(() => service.AddPart(build, "mt-1"));
 
@@ -58,7 +65,7 @@ public class BuildServiceMockTests
     }
 
     /// <summary>TC-64: звіт збирає проблеми всіх правил. Масив задає, скільки проблем повертає кожне правило.</summary>
-    [Theory(Skip = Stub.Reason)]
+    [Theory]
     [InlineData(new int[0], 0)]
     [InlineData(new[] { 0, 0 }, 0)]
     [InlineData(new[] { 1, 0 }, 1)]
@@ -68,24 +75,39 @@ public class BuildServiceMockTests
     {
         var build = new Build();
         build.Add(TestParts.Frame());
-        // TODO (розробник, #63): макети правил: правило i повертає problemsPerRule[i] проблем.
-        BuildService service = null!;
+        // Макети правил (розробник): правило i повертає problemsPerRule[i] проблем.
+        // Каталог Strict: Check не має звертатися до каталогу взагалі.
+        var rules = problemsPerRule.Select((count, i) =>
+        {
+            var rule = new Mock<ICompatibilityRule>();
+            rule.Setup(r => r.Name).Returns($"Правило {i + 1}");
+            rule.Setup(r => r.Check(It.IsAny<IReadOnlyCollection<IComponent>>()))
+                .Returns(Enumerable.Range(1, count).Select(k => $"проблема {k}").ToList());
+            return rule;
+        }).ToList();
+        var catalog = new Mock<IComponentCatalog>(MockBehavior.Strict);
+        var service = new BuildService(catalog.Object, rules.Select(r => r.Object));
 
         var report = service.Check(build);
 
         Assert.Equal(expectedProblems, report.Problems.Count);
         Assert.Equal(expectedProblems == 0, report.IsCompatible);
+        foreach (var rule in rules)
+            rule.Verify(r => r.Check(build.Parts), Times.Once());
     }
 
     /// <summary>TC-65: проблема підписана назвою правила, ціна і вага рахуються зі збірки.</summary>
-    [Fact(Skip = Stub.Reason)]
+    [Fact]
     public void Check_ProblemNamedByRule_TotalsFromBuild()
     {
         var build = new Build();
         build.Add(TestParts.Frame());
         build.Add(TestParts.Battery());
-        // TODO (розробник, #63): макет правила
-        BuildService service = null!;
+        // Макет правила (розробник)
+        var rule = new Mock<ICompatibilityRule>();
+        rule.Setup(r => r.Name).Returns("Тестове правило");
+        rule.Setup(r => r.Check(It.IsAny<IReadOnlyCollection<IComponent>>())).Returns(["батарея завелика"]);
+        var service = new BuildService(Mock.Of<IComponentCatalog>(), [rule.Object]);
 
         var report = service.Check(build);
 
