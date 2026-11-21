@@ -427,6 +427,9 @@ FodyWeavers.xsd
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
 
-
 # Вивід ручної перевірки ManualCheck, який тестувальник зберігає для звіту
 manualcheck*.txt
+
+# Звіт про покриття коду (ReportGenerator) і сирі результати coverlet
+coverage/
+coveragereport/
