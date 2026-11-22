@@ -1,0 +1,359 @@
+{
+  "components": [
+    {
+      "category": "Frame",
+      "id": "fr-1",
+      "name": "Source One V5 5\"",
+      "manufacturer": "TBS",
+      "price": 1200,
+      "weightGrams": 110,
+      "parameters": {
+        "maxPropInches": 5.1,
+        "stackMount": "30.5x30.5",
+        "wheelbaseMm": 225
+      }
+    },
+    {
+      "category": "Frame",
+      "id": "fr-3",
+      "name": "Cinelog35 V2",
+      "manufacturer": "GEPRC",
+      "price": 2100,
+      "weightGrams": 135,
+      "parameters": {
+        "maxPropInches": 3.5,
+        "stackMount": "20x20",
+        "wheelbaseMm": 142
+      }
+    },
+    {
+      "category": "Frame",
+      "id": "fr-4",
+      "name": "Apex 5\" HD",
+      "manufacturer": "ImpulseRC",
+      "price": 3400,
+      "weightGrams": 118,
+      "inStock": false,
+      "parameters": {
+        "maxPropInches": 5.1,
+        "stackMount": "30.5x30.5",
+        "wheelbaseMm": 223
+      }
+    },
+
+    {
+      "category": "FlightController",
+      "id": "fc-1",
+      "name": "F722 V2",
+      "manufacturer": "SpeedyBee",
+      "price": 1900,
+      "weightGrams": 9,
+      "parameters": {
+        "mcu": "STM32F722",
+        "stackMount": "30.5x30.5",
+        "minCells": 3,
+        "maxCells": 6,
+        "firmware": "Betaflight",
+        "uartCount": 5
+      }
+    },
+    {
+      "category": "FlightController",
+      "id": "fc-2",
+      "name": "Mini F405",
+      "manufacturer": "HGLRC",
+      "price": 1300,
+      "weightGrams": 5,
+      "parameters": {
+        "mcu": "STM32F405",
+        "stackMount": "20x20",
+        "minCells": 2,
+        "maxCells": 6,
+        "firmware": "Betaflight",
+        "uartCount": 4
+      }
+    },
+    {
+      "category": "FlightController",
+      "id": "fc-3",
+      "name": "F405 Wing",
+      "manufacturer": "Matek",
+      "price": 2300,
+      "weightGrams": 12,
+      "inStock": false,
+      "parameters": {
+        "mcu": "STM32F405",
+        "stackMount": "30.5x30.5",
+        "minCells": 2,
+        "maxCells": 6,
+        "firmware": "INAV",
+        "uartCount": 6
+      }
+    },
+
+    {
+      "category": "Esc",
+      "id": "esc-1",
+      "name": "BLS 50A 4-in-1",
+      "manufacturer": "SpeedyBee",
+      "price": 2200,
+      "weightGrams": 14,
+      "parameters": {
+        "continuousCurrentA": 50,
+        "minCells": 3,
+        "maxCells": 6,
+        "isFourInOne": true,
+        "stackMount": "30.5x30.5",
+        "protocol": "DShot600"
+      }
+    },
+    {
+      "category": "Esc",
+      "id": "esc-2",
+      "name": "Zeus 35A 4-in-1",
+      "manufacturer": "HGLRC",
+      "price": 1700,
+      "weightGrams": 7,
+      "parameters": {
+        "continuousCurrentA": 35,
+        "minCells": 2,
+        "maxCells": 4,
+        "isFourInOne": true,
+        "stackMount": "20x20",
+        "protocol": "DShot600"
+      }
+    },
+    {
+      "category": "Esc",
+      "id": "esc-3",
+      "name": "Aria 35A",
+      "manufacturer": "Aikon",
+      "price": 650,
+      "weightGrams": 6,
+      "inStock": false,
+      "parameters": {
+        "continuousCurrentA": 35,
+        "minCells": 2,
+        "maxCells": 6,
+        "isFourInOne": false,
+        "protocol": "DShot300"
+      }
+    },
+
+    {
+      "category": "Motor",
+      "id": "mt-1",
+      "name": "Velox V2207.5 1950KV",
+      "manufacturer": "T-Motor",
+      "price": 900,
+      "weightGrams": 33,
+      "parameters": {
+        "statorSize": "2207",
+        "kv": 1950,
+        "minCells": 4,
+        "maxCells": 6,
+        "maxCurrentA": 40
+      }
+    },
+    {
+      "category": "Motor",
+      "id": "mt-2",
+      "name": "Xing2 2306 2555KV",
+      "manufacturer": "iFlight",
+      "price": 750,
+      "weightGrams": 32,
+      "parameters": {
+        "statorSize": "2306",
+        "kv": 2555,
+        "minCells": 3,
+        "maxCells": 4,
+        "maxCurrentA": 45
+      }
+    },
+    {
+      "category": "Motor",
+      "id": "mt-3",
+      "name": "1404 3800KV",
+      "manufacturer": "BrotherHobby",
+      "price": 620,
+      "weightGrams": 10,
+      "parameters": {
+        "statorSize": "1404",
+        "kv": 3800,
+        "minCells": 3,
+        "maxCells": 4,
+        "maxCurrentA": 20
+      }
+    },
+
+    {
+      "category": "Propeller",
+      "id": "pr-1",
+      "name": "51466 V2",
+      "manufacturer": "Gemfan",
+      "price": 120,
+      "weightGrams": 4.2,
+      "parameters": {
+        "diameterInches": 5.1,
+        "pitch": 4.66,
+        "blades": 3
+      }
+    },
+    {
+      "category": "Propeller",
+      "id": "pr-2",
+      "name": "D90 3.5\"",
+      "manufacturer": "Gemfan",
+      "price": 110,
+      "weightGrams": 2.1,
+      "parameters": {
+        "diameterInches": 3.5,
+        "pitch": 3,
+        "blades": 5
+      }
+    },
+    {
+      "category": "Propeller",
+      "id": "pr-3",
+      "name": "7040",
+      "manufacturer": "HQProp",
+      "price": 160,
+      "weightGrams": 9.5,
+      "parameters": {
+        "diameterInches": 7,
+        "pitch": 4,
+        "blades": 3
+      }
+    },
+
+    {
+      "category": "Camera",
+      "id": "cam-1",
+      "name": "Ratel 2",
+      "manufacturer": "Caddx",
+      "price": 1100,
+      "weightGrams": 5.9,
+      "parameters": {
+        "videoSystem": "Analog",
+        "widthMm": 19,
+        "resolution": "1200TVL",
+        "fovDegrees": 165
+      }
+    },
+    {
+      "category": "Camera",
+      "id": "cam-2",
+      "name": "O3 Air Unit Camera",
+      "manufacturer": "DJI",
+      "price": 4200,
+      "weightGrams": 8.2,
+      "parameters": {
+        "videoSystem": "DJI",
+        "widthMm": 19,
+        "resolution": "4K",
+        "fovDegrees": 155
+      }
+    },
+    {
+      "category": "Camera",
+      "id": "cam-3",
+      "name": "Avatar HD Nano",
+      "manufacturer": "Walksnail",
+      "price": 2600,
+      "weightGrams": 4,
+      "parameters": {
+        "videoSystem": "Walksnail",
+        "widthMm": 14,
+        "resolution": "1080p",
+        "fovDegrees": 160
+      }
+    },
+
+    {
+      "category": "Vtx",
+      "id": "vtx-1",
+      "name": "Unify Pro32 HV",
+      "manufacturer": "TBS",
+      "price": 1700,
+      "weightGrams": 7,
+      "parameters": {
+        "videoSystem": "Analog",
+        "maxPowerMw": 1000,
+        "frequencyGhz": 5.8,
+        "mount": "20x20"
+      }
+    },
+    {
+      "category": "Vtx",
+      "id": "vtx-2",
+      "name": "O3 Air Unit",
+      "manufacturer": "DJI",
+      "price": 5200,
+      "weightGrams": 28,
+      "parameters": {
+        "videoSystem": "DJI",
+        "maxPowerMw": 1200,
+        "frequencyGhz": 5.8,
+        "mount": "20x20"
+      }
+    },
+    {
+      "category": "Vtx",
+      "id": "vtx-3",
+      "name": "Avatar HD Mini VTX",
+      "manufacturer": "Walksnail",
+      "price": 3100,
+      "weightGrams": 11,
+      "inStock": false,
+      "parameters": {
+        "videoSystem": "Walksnail",
+        "maxPowerMw": 500,
+        "frequencyGhz": 5.8,
+        "mount": "20x20"
+      }
+    },
+
+    {
+      "category": "Battery",
+      "id": "bt-1",
+      "name": "1300mAh 6S 100C",
+      "manufacturer": "CNHL",
+      "price": 1500,
+      "weightGrams": 210,
+      "parameters": {
+        "cells": 6,
+        "capacityMah": 1300,
+        "cRating": 100,
+        "connector": "XT60"
+      }
+    },
+    {
+      "category": "Battery",
+      "id": "bt-2",
+      "name": "1500mAh 4S 120C",
+      "manufacturer": "Tattu R-Line",
+      "price": 1400,
+      "weightGrams": 180,
+      "parameters": {
+        "cells": 4,
+        "capacityMah": 1500,
+        "cRating": 120,
+        "connector": "XT60"
+      }
+    },
+    {
+      "category": "Battery",
+      "id": "bt-3",
+      "name": "850mAh 4S 80C",
+      "manufacturer": "GNB",
+      "price": 700,
+      "weightGrams": 95,
+      "parameters": {
+        "cells": 4,
+        "capacityMah": 850,
+        "cRating": 80,
+        "connector": "XT30"
+      }
+    }
+  ]
+}
