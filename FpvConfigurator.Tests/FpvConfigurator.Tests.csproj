@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="bunit" Version="2.12.5" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Moq" Version="4.21.0" />
@@ -28,6 +29,7 @@
     <ProjectReference Include="..\FpvConfigurator.Components\FpvConfigurator.Components.csproj" />
     <ProjectReference Include="..\FpvConfigurator.Catalog\FpvConfigurator.Catalog.csproj" />
     <ProjectReference Include="..\FpvConfigurator.Services\FpvConfigurator.Services.csproj" />
+    <ProjectReference Include="..\FpvConfigurator.Web\FpvConfigurator.Web.csproj" />
   </ItemGroup>
 
 </Project>
