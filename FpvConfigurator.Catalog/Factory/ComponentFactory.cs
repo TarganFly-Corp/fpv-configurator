@@ -24,22 +24,22 @@ public sealed class ComponentFactory : IComponentFactory
     {
         var f = new ComponentFactory(registry);
         f.RegisterCreator(StandardCategories.Frame.Key, (i, p) => new Frame(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
-            Dbl(p, "maxPropInches"), Str(p, "stackMount"), Int(p, "wheelbaseMm")));
+            Dbl(p, "maxPropInches"), Str(p, "stackMount"), Int(p, "wheelbaseMm"), i.InStock));
         f.RegisterCreator(StandardCategories.Motor.Key, (i, p) => new Motor(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
-            Str(p, "statorSize"), Int(p, "kv"), Int(p, "minCells"), Int(p, "maxCells"), Dbl(p, "maxCurrentA")));
+            Str(p, "statorSize"), Int(p, "kv"), Int(p, "minCells"), Int(p, "maxCells"), Dbl(p, "maxCurrentA"), i.InStock));
         f.RegisterCreator(StandardCategories.Propeller.Key, (i, p) => new Propeller(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
-            Dbl(p, "diameterInches"), Dbl(p, "pitch"), Int(p, "blades")));
+            Dbl(p, "diameterInches"), Dbl(p, "pitch"), Int(p, "blades"), i.InStock));
         f.RegisterCreator(StandardCategories.Battery.Key, (i, p) => new Battery(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
-            Int(p, "cells"), Int(p, "capacityMah"), Int(p, "cRating"), Str(p, "connector")));
+            Int(p, "cells"), Int(p, "capacityMah"), Int(p, "cRating"), Str(p, "connector"), i.InStock));
         f.RegisterCreator(StandardCategories.FlightController.Key, (i, p) => new FlightController(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
-            Str(p, "mcu"), Str(p, "stackMount"), Int(p, "minCells"), Int(p, "maxCells"), Str(p, "firmware"), Int(p, "uartCount")));
+            Str(p, "mcu"), Str(p, "stackMount"), Int(p, "minCells"), Int(p, "maxCells"), Str(p, "firmware"), Int(p, "uartCount"), i.InStock));
         f.RegisterCreator(StandardCategories.Esc.Key, (i, p) => new Esc(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
             Int(p, "continuousCurrentA"), Int(p, "minCells"), Int(p, "maxCells"), (bool)p["isFourInOne"]!,
-            p.TryGetValue("stackMount", out var m) ? m as string ?? "" : "", Str(p, "protocol")));
+            p.TryGetValue("stackMount", out var m) ? m as string ?? "" : "", Str(p, "protocol"), i.InStock));
         f.RegisterCreator(StandardCategories.Camera.Key, (i, p) => new Camera(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
-            Str(p, "videoSystem"), Int(p, "widthMm"), Str(p, "resolution"), Int(p, "fovDegrees")));
+            Str(p, "videoSystem"), Int(p, "widthMm"), Str(p, "resolution"), Int(p, "fovDegrees"), i.InStock));
         f.RegisterCreator(StandardCategories.Vtx.Key, (i, p) => new Vtx(i.Id, i.Name, i.Manufacturer, i.Price, i.WeightGrams,
-            Str(p, "videoSystem"), Int(p, "maxPowerMw"), Dbl(p, "frequencyGhz"), Str(p, "mount")));
+            Str(p, "videoSystem"), Int(p, "maxPowerMw"), Dbl(p, "frequencyGhz"), Str(p, "mount"), i.InStock));
         return f;
     }
 

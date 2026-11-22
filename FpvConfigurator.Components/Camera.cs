@@ -8,8 +8,8 @@ public class Camera : ComponentBase
     private static readonly int[] Widths = { 14, 19 };
 
     public Camera(string id, string name, string manufacturer, decimal price, double weightGrams,
-                  string videoSystem, int widthMm, string resolution, int fovDegrees)
-        : base(id, name, manufacturer, price, weightGrams)
+                  string videoSystem, int widthMm, string resolution, int fovDegrees, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (!VideoSystems.Contains(videoSystem))
             throw new ArgumentException($"Невідома відеосистема: {videoSystem}", nameof(videoSystem));

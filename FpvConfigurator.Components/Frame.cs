@@ -5,8 +5,8 @@ namespace FpvConfigurator.Components;
 public class Frame : ComponentBase
 {
     public Frame(string id, string name, string manufacturer, decimal price, double weightGrams,
-                 double maxPropInches, string stackMount, int wheelbaseMm)
-        : base(id, name, manufacturer, price, weightGrams)
+                 double maxPropInches, string stackMount, int wheelbaseMm, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (maxPropInches <= 0)
             throw new ArgumentOutOfRangeException(nameof(maxPropInches), "Розмір гвинта має бути більшим за 0");

@@ -9,8 +9,8 @@ public class Esc : ComponentBase
 
     public Esc(string id, string name, string manufacturer, decimal price, double weightGrams,
                int continuousCurrentA, int minCells, int maxCells,
-               bool isFourInOne, string stackMount, string protocol)
-        : base(id, name, manufacturer, price, weightGrams)
+               bool isFourInOne, string stackMount, string protocol, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (continuousCurrentA <= 0)
             throw new ArgumentOutOfRangeException(nameof(continuousCurrentA), "Струм має бути більшим за 0");
