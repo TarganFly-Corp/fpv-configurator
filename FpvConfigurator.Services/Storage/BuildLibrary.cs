@@ -3,7 +3,7 @@
 namespace FpvConfigurator.Services.Storage;
 
 /// <summary>
-/// Бібліотека збірок користувача (ФВ-15): зберегти збірку, відкрити її знову, список назв.
+/// Бібліотека збірок користувача (ФВ-15, ФВ-20): зберегти збірку, відкрити її знову, перейменувати, видалити, список назв.
 /// Сховище і каталог отримує через конструктор (Constructor Injection).
 /// </summary>
 public sealed class BuildLibrary
@@ -59,6 +59,34 @@ public sealed class BuildLibrary
             build.Add(part);
         }
         return build;
+    }
+
+    /// <summary>
+    /// Перейменовує збережену збірку (ФВ-20). Можна змінити лише регістр літер у назві.
+    /// Якщо нова назва вже зайнята іншою збіркою, кидає InvalidOperationException і нічого не змінює.
+    /// </summary>
+    public void Rename(string oldName, string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+            throw new ArgumentException("Назва збірки не може бути порожньою", nameof(newName));
+        newName = newName.Trim();
+
+        var saved = _storage.Load(oldName)
+                    ?? throw new KeyNotFoundException($"Збірки «{oldName}» немає в сховищі");
+        var sameName = string.Equals(saved.Name, newName, StringComparison.OrdinalIgnoreCase);
+        if (!sameName && _storage.Exists(newName))
+            throw new InvalidOperationException($"Збірка «{newName}» вже є в сховищі");
+
+        _storage.Save(saved with { Name = newName });
+        if (!sameName)
+            _storage.Delete(saved.Name);
+    }
+
+    /// <summary>Видаляє збережену збірку (ФВ-20). Якщо такої немає, кидає KeyNotFoundException.</summary>
+    public void Delete(string name)
+    {
+        if (!_storage.Delete(name))
+            throw new KeyNotFoundException($"Збірки «{name}» немає в сховищі");
     }
 
     /// <remarks>

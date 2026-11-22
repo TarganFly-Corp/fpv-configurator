@@ -1,7 +1,7 @@
 ﻿namespace FpvConfigurator.Services.Storage;
 
 /// <summary>
-/// Сховище збірок (ФВ-15). Реалізація з файлами JSON з'явиться у веб-застосунку (віха M6),
+/// Сховище збірок (ФВ-15, ФВ-20). У веб-застосунку це JsonFileBuildStorage (файл JSON),
 /// у модульних тестах сховище замінюється макетом Moq.
 /// </summary>
 public interface IBuildStorage
@@ -17,4 +17,7 @@ public interface IBuildStorage
 
     /// <summary>Назви всіх збережених збірок.</summary>
     IReadOnlyList<string> ListNames();
+
+    /// <summary>Видаляє збірку. Повертає false, якщо такої назви немає.</summary>
+    bool Delete(string name);
 }
