@@ -8,8 +8,8 @@ public class Vtx : ComponentBase
     private static readonly string[] Mounts = { "20x20", "25.5x25.5", "30.5x30.5" };
 
     public Vtx(string id, string name, string manufacturer, decimal price, double weightGrams,
-               string videoSystem, int maxPowerMw, double frequencyGhz, string mount)
-        : base(id, name, manufacturer, price, weightGrams)
+               string videoSystem, int maxPowerMw, double frequencyGhz, string mount, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (!VideoSystems.Contains(videoSystem))
             throw new ArgumentException($"Невідома відеосистема: {videoSystem}", nameof(videoSystem));
