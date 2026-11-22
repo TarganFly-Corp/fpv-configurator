@@ -5,8 +5,8 @@ namespace FpvConfigurator.Components;
 public class Motor : ComponentBase
 {
     public Motor(string id, string name, string manufacturer, decimal price, double weightGrams,
-                 string statorSize, int kv, int minCells, int maxCells, double maxCurrentA)
-        : base(id, name, manufacturer, price, weightGrams)
+                 string statorSize, int kv, int minCells, int maxCells, double maxCurrentA, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (kv <= 0)
             throw new ArgumentOutOfRangeException(nameof(kv), "KV має бути більшим за 0");

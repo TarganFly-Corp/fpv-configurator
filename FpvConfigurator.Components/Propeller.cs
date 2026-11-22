@@ -5,8 +5,8 @@ namespace FpvConfigurator.Components;
 public class Propeller : ComponentBase
 {
     public Propeller(string id, string name, string manufacturer, decimal price, double weightGrams,
-                     double diameterInches, double pitch, int blades)
-        : base(id, name, manufacturer, price, weightGrams)
+                     double diameterInches, double pitch, int blades, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (diameterInches <= 0)
             throw new ArgumentOutOfRangeException(nameof(diameterInches), "Діаметр має бути більшим за 0");

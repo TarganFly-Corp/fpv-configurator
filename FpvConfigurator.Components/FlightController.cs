@@ -9,8 +9,8 @@ public class FlightController : ComponentBase
 
     public FlightController(string id, string name, string manufacturer, decimal price, double weightGrams,
                             string mcu, string stackMount, int minCells, int maxCells,
-                            string firmware, int uartCount)
-        : base(id, name, manufacturer, price, weightGrams)
+                            string firmware, int uartCount, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (string.IsNullOrWhiteSpace(mcu))
             throw new ArgumentException("Процесор (MCU) має бути вказаний", nameof(mcu));

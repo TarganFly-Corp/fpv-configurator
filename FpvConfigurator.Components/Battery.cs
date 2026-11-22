@@ -5,8 +5,8 @@ namespace FpvConfigurator.Components;
 public class Battery : ComponentBase
 {
     public Battery(string id, string name, string manufacturer, decimal price, double weightGrams,
-                   int cells, int capacityMah, int cRating, string connector)
-        : base(id, name, manufacturer, price, weightGrams)
+                   int cells, int capacityMah, int cRating, string connector, bool inStock = true)
+        : base(id, name, manufacturer, price, weightGrams, inStock)
     {
         if (cells is < 1 or > 8)
             throw new ArgumentOutOfRangeException(nameof(cells), "Кількість банок має бути від 1 до 8");
