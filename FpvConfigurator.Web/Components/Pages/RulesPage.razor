@@ -1,0 +1,247 @@
+﻿@page "/rules"
+@implements IDisposable
+@inject UserRules UserRules
+@inject UserCatalog UserCatalog
+@inject BuildService BuildService
+
+<PageTitle>Правила сумісності · FPV Configurator</PageTitle>
+
+<h1>Правила сумісності</h1>
+<p class="muted">Кожна збірка перевіряється вбудованими правилами і правилами, які ви додали тут. Нове правило діє одразу на сторінці «Збірка» і зберігається між запусками.</p>
+
+@if (UserRules.StartupErrors.Count > 0)
+{
+    <div class="notice notice-error" role="alert">
+        Не завантажено з rules.json:
+        @foreach (var error in UserRules.StartupErrors)
+        {
+            <div>@error</div>
+        }
+    </div>
+}
+
+<h2>Вбудовані правила</h2>
+<ul class="list" id="builtin-rules">
+    @foreach (var rule in BuildService.Rules.Where(r => r is not CustomRuleSet))
+    {
+        <li class="list-row">
+            <strong>@rule.Name</strong>
+            <span class="muted">@BuiltInDescription(rule.Name)</span>
+            <span class="chip">вбудоване</span>
+        </li>
+    }
+</ul>
+
+<h2>Мої правила</h2>
+@if (UserRules.Rules.Rules.Count == 0)
+{
+    <p class="muted" id="no-user-rules">Ви ще не додали жодного правила.</p>
+}
+else
+{
+    <ul class="list" id="user-rules">
+        @foreach (var rule in UserRules.Rules.Rules)
+        {
+            <li class="list-row">
+                <strong>@rule.Name</strong>
+                <span>@UserRules.Rules.Describe(rule)</span>
+                <span class="chip chip-accent">користувацьке</span>
+                <div class="actions">
+                    <button class="btn btn-small btn-danger" title="Видалити правило «@rule.Name»"
+                            @onclick="() => Remove(rule.Name)">
+                        Видалити
+                    </button>
+                </div>
+            </li>
+        }
+    </ul>
+}
+<Notice Text="@message" IsError="@messageIsError" />
+
+<section class="panel" id="new-rule">
+    <h2>Нове правило</h2>
+    <p class="muted">Правило порівнює параметр деталі однієї категорії з параметром деталі іншої категорії або з числом чи значенням. Збірка, у якій умова не виконується, отримує проблему з назвою правила.</p>
+
+    <div class="form-grid">
+        <label class="field">
+            <span>Назва правила *</span>
+            <input id="rule-name" @bind="name" placeholder="ESC тягне мотори" />
+            <FieldError Text="@Error("name")" />
+        </label>
+    </div>
+
+    <h3>Ліва частина</h3>
+    <div class="form-grid">
+        <label class="field">
+            <span>Категорія</span>
+            <select id="rule-left-category" @bind="leftCategory" @bind:after="() => leftParameter = FirstNumeric(leftCategory)">
+                <option value="">Оберіть категорію</option>
+                @foreach (var c in UserCatalog.Registry.All)
+                {
+                    <option value="@c.Key">@c.DisplayName</option>
+                }
+            </select>
+        </label>
+        <label class="field">
+            <span>Параметр</span>
+            <select id="rule-left-parameter" @bind="leftParameter">
+                <option value="">—</option>
+                @foreach (var p in ParametersOf(leftCategory))
+                {
+                    <option value="@p.Key">@p.DisplayName (@PartFormat.TypeName(p.Type))</option>
+                }
+            </select>
+            <FieldError Text="@Error("left")" />
+        </label>
+        <label class="field">
+            <span>Умова</span>
+            <select id="rule-operator" @bind="op">
+                @foreach (var o in Enum.GetValues<RuleOperator>())
+                {
+                    <option value="@o">@o.Symbol()</option>
+                }
+            </select>
+            <FieldError Text="@Error("operator")" />
+        </label>
+    </div>
+
+    <h3>Права частина</h3>
+    <div class="radio-row">
+        <label class="check"><input type="radio" name="rule-right-kind" id="rule-right-part" checked="@comparesParts" @onchange="() => comparesParts = true" /> <span>Параметр іншої деталі</span></label>
+        <label class="check"><input type="radio" name="rule-right-kind" id="rule-right-value" checked="@(!comparesParts)" @onchange="() => comparesParts = false" /> <span>Число або значення</span></label>
+    </div>
+    <div class="form-grid">
+        @if (comparesParts)
+        {
+            <label class="field">
+                <span>Категорія</span>
+                <select id="rule-right-category" @bind="rightCategory" @bind:after="() => rightParameter = FirstNumeric(rightCategory)">
+                    <option value="">Оберіть категорію</option>
+                    @foreach (var c in UserCatalog.Registry.All)
+                    {
+                        <option value="@c.Key">@c.DisplayName</option>
+                    }
+                </select>
+            </label>
+            <label class="field">
+                <span>Параметр</span>
+                <select id="rule-right-parameter" @bind="rightParameter">
+                    <option value="">—</option>
+                    @foreach (var p in ParametersOf(rightCategory))
+                    {
+                        <option value="@p.Key">@p.DisplayName (@PartFormat.TypeName(p.Type))</option>
+                    }
+                </select>
+                <FieldError Text="@Error("right")" />
+            </label>
+        }
+        else
+        {
+            <label class="field">
+                <span>Значення</span>
+                <input id="rule-constant" @bind="constant" placeholder="4" />
+                <FieldError Text="@Error("constant")" />
+            </label>
+        }
+    </div>
+
+    @if (Preview() is { } preview)
+    {
+        <p>Умова: <strong id="rule-preview">@preview</strong></p>
+    }
+
+    <div class="actions">
+        <button class="btn btn-primary" id="save-rule" @onclick="Save">Додати правило</button>
+        <button class="btn" id="example-rule" @onclick="FillExample">Заповнити прикладом</button>
+    </div>
+</section>
+
+@code {
+    private static readonly Dictionary<string, string> BuiltIn = new()
+    {
+        ["Кріплення стеку"] = "кріплення стеку рами, польотного контролера і ESC 4-в-1 збігаються",
+        ["Розмір пропелерів"] = "пропелери не більші, ніж дозволяє рама",
+        ["Живлення"] = "кількість банок батареї підходить моторам, ESC і контролеру",
+        ["Відеосистема"] = "камера і відеопередавач однієї відеосистеми"
+    };
+
+    private string name = "";
+    private string leftCategory = "";
+    private string leftParameter = "";
+    private RuleOperator op = RuleOperator.GreaterOrEqual;
+    private bool comparesParts = true;
+    private string rightCategory = "";
+    private string rightParameter = "";
+    private string constant = "";
+    private IReadOnlyList<RuleError> errors = [];
+    private string? message;
+    private bool messageIsError;
+
+    protected override void OnInitialized()
+    {
+        UserRules.Rules.Changed += Refresh;
+        UserCatalog.Changed += Refresh;
+    }
+
+    private static string BuiltInDescription(string ruleName) => BuiltIn.GetValueOrDefault(ruleName, "");
+
+    private IReadOnlyList<ParameterDefinition> ParametersOf(string categoryKey) =>
+        UserCatalog.Registry.TryGet(categoryKey, out var category) ? category.Parameters : [];
+
+    private string FirstNumeric(string categoryKey)
+    {
+        var parameters = ParametersOf(categoryKey);
+        return (parameters.FirstOrDefault(p => RuleValue.IsNumeric(p.Type)) ?? parameters.FirstOrDefault())?.Key ?? "";
+    }
+
+    private CustomRuleDefinition Current() => comparesParts
+        ? new(name, leftCategory, leftParameter, op, rightCategory, rightParameter)
+        : new(name, leftCategory, leftParameter, op, Constant: constant);
+
+    private string? Preview()
+    {
+        if (string.IsNullOrEmpty(leftParameter) || (comparesParts ? string.IsNullOrEmpty(rightParameter) : string.IsNullOrWhiteSpace(constant)))
+            return null;
+        return UserRules.Rules.Describe(Current());
+    }
+
+    private string? Error(string field) => errors.FirstOrDefault(e => e.Field == field)?.Message;
+
+    private void FillExample()
+    {
+        name = "ESC тягне мотори";
+        leftCategory = "Esc";
+        leftParameter = "continuousCurrentA";
+        op = RuleOperator.GreaterOrEqual;
+        comparesParts = true;
+        rightCategory = "Motor";
+        rightParameter = "maxCurrentA";
+        errors = [];
+    }
+
+    private void Save()
+    {
+        message = null;
+        errors = UserRules.Add(Current());
+        if (errors.Count > 0)
+            return;
+        message = $"Правило «{name.Trim()}» додано. Воно вже перевіряє збірку.";
+        messageIsError = false;
+        name = "";
+        constant = "";
+    }
+
+    private void Remove(string ruleName)
+    {
+        messageIsError = !UserRules.Remove(ruleName);
+        message = messageIsError ? $"Правила «{ruleName}» вже немає" : $"Правило «{ruleName}» видалено";
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        UserRules.Rules.Changed -= Refresh;
+        UserCatalog.Changed -= Refresh;
+    }
+}
