@@ -1,0 +1,114 @@
+﻿@page "/builds"
+@inject BuildLibrary Library
+@inject BuildSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Мої збірки · FPV Configurator</PageTitle>
+
+<div class="page-head">
+    <h1>Мої збірки</h1>
+    <div class="actions">
+        <a class="btn btn-primary" href="build">До поточної збірки</a>
+    </div>
+</div>
+
+<Notice Text="@message" IsError="@isError" />
+
+@if (names.Count == 0)
+{
+    <p class="empty">Збережених збірок ще немає. Зберіть дрон на сторінці <a href="build">Збірка</a> і натисніть «Зберегти».</p>
+}
+else
+{
+    <ul class="list" id="saved-builds">
+        @foreach (var name in names)
+        {
+            <li class="list-row">
+                @if (renaming == name)
+                {
+                    <input class="grow" @bind="newName" @bind:event="oninput" aria-label="Нова назва збірки" />
+                    <div class="actions">
+                        <button class="btn btn-primary btn-small" @onclick="() => Rename(name)">Зберегти назву</button>
+                        <button class="btn btn-small" @onclick="() => renaming = null">Скасувати</button>
+                    </div>
+                }
+                else if (deleting == name)
+                {
+                    <span class="grow">Видалити збірку «@name»?</span>
+                    <div class="actions">
+                        <button class="btn btn-danger btn-small" @onclick="() => Delete(name)">Так, видалити</button>
+                        <button class="btn btn-small" @onclick="() => deleting = null">Скасувати</button>
+                    </div>
+                }
+                else
+                {
+                    <span class="grow list-title">@name</span>
+                    <div class="actions">
+                        <button class="btn btn-primary btn-small" @onclick="() => Open(name)">Відкрити</button>
+                        <button class="btn btn-small" @onclick="() => StartRename(name)">Перейменувати</button>
+                        <button class="btn btn-danger btn-small" @onclick="() => { deleting = name; renaming = null; }">Видалити</button>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private IReadOnlyList<string> names = [];
+    private string? renaming;
+    private string? deleting;
+    private string newName = "";
+    private string? message;
+    private bool isError;
+
+    protected override void OnInitialized() => names = Library.Names();
+
+    private void Open(string name)
+    {
+        try
+        {
+            Session.Open(name);
+            Navigation.NavigateTo("build");
+        }
+        catch (Exception ex) when (UserCatalog.IsCatalogError(ex))
+        {
+            (message, isError) = (ex.Message, true);
+        }
+    }
+
+    private void StartRename(string name)
+    {
+        (renaming, deleting, newName) = (name, null, name);
+    }
+
+    private void Rename(string name)
+    {
+        try
+        {
+            Library.Rename(name, newName);
+            (message, isError) = ($"Збірку «{name}» перейменовано на «{newName.Trim()}».", false);
+            renaming = null;
+            names = Library.Names();
+        }
+        catch (Exception ex) when (UserCatalog.IsCatalogError(ex))
+        {
+            (message, isError) = (PartFormat.Message(ex), true);
+        }
+    }
+
+    private void Delete(string name)
+    {
+        try
+        {
+            Library.Delete(name);
+            (message, isError) = ($"Збірку «{name}» видалено.", false);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            (message, isError) = (ex.Message, true);
+        }
+        deleting = null;
+        names = Library.Names();
+    }
+}

@@ -1,0 +1,248 @@
+﻿@page "/build"
+@implements IDisposable
+@inject BuildSession Session
+@inject UserCatalog UserCatalog
+
+<PageTitle>Збірка · FPV Configurator</PageTitle>
+
+<div class="page-head">
+    <h1>@Session.Current.Name</h1>
+    <div class="actions">
+        <button class="btn" @onclick="NewBuild">Нова збірка</button>
+        <a class="btn" href="builds">Відкрити збережену</a>
+    </div>
+</div>
+
+<Notice Text="@message" IsError="@isError" />
+
+<div class="build-layout">
+    <div class="slots">
+        @foreach (var category in StandardCategories.All)
+        {
+            var type = Enum.Parse<ComponentType>(category.Key);
+            var limit = Build.LimitFor(type) ?? 1;
+            var chosen = Session.Current.Parts.Where(p => p.Type == type).ToList();
+            <section class="slot @(chosen.Count == limit ? "slot-full" : "")" id="slot-@category.Key">
+                <header class="slot-head">
+                    <h2>@category.DisplayName</h2>
+                    <span class="slot-count">@chosen.Count / @limit</span>
+                </header>
+                @foreach (var part in chosen.Select((p, i) => (p, i)))
+                {
+                    <div class="slot-part">
+                        <a href="catalog/@Uri.EscapeDataString(part.p.Id)">@part.p.Manufacturer @part.p.Name</a>
+                        <span class="muted">@PartFormat.Price(part.p.Price)</span>
+                        <button class="icon-btn" title="Прибрати зі збірки" aria-label="Прибрати @part.p.Name" @onclick="() => Remove(part.p.Id)">✕</button>
+                    </div>
+                }
+                @if (chosen.Count < limit)
+                {
+                    var options = UserCatalog.Catalog.Query(new CatalogQuery(CategoryKey: category.Key, Sort: CatalogSort.PriceAscending));
+                    <div class="slot-add">
+                        <select @bind="selected[category.Key]" aria-label="Деталь категорії @category.DisplayName">
+                            <option value="">Оберіть: @category.DisplayName</option>
+                            @foreach (var option in options)
+                            {
+                                <option value="@option.Id">@option.Manufacturer @option.Name, @PartFormat.Price(option.Price)@(option.InStock ? "" : " (немає в наявності)")</option>
+                            }
+                        </select>
+                        <button class="btn btn-small" disabled="@string.IsNullOrEmpty(selected[category.Key])" @onclick="() => AddSelected(category.Key, type, fill: false)">Додати</button>
+                        @if (limit - chosen.Count > 1)
+                        {
+                            <button class="btn btn-small" disabled="@string.IsNullOrEmpty(selected[category.Key])" @onclick="() => AddSelected(category.Key, type, fill: true)">Додати @(limit - chosen.Count) шт.</button>
+                        }
+                    </div>
+                }
+            </section>
+        }
+
+        <section class="slot" id="slot-custom">
+            <header class="slot-head">
+                <h2>Додаткові деталі</h2>
+                <span class="slot-count">@CustomParts.Count</span>
+            </header>
+            @foreach (var part in CustomParts)
+            {
+                <div class="slot-part">
+                    <a href="catalog/@Uri.EscapeDataString(part.Id)">@part.Manufacturer @part.Name</a>
+                    <span class="muted">@PartFormat.CategoryName(UserCatalog.Registry, part.CategoryKey), @PartFormat.Price(part.Price)</span>
+                    <button class="icon-btn" title="Прибрати зі збірки" aria-label="Прибрати @part.Name" @onclick="() => Remove(part.Id)">✕</button>
+                </div>
+            }
+            <div class="slot-add">
+                <select @bind="customSelected" aria-label="Додаткова деталь">
+                    <option value="">Оберіть деталь користувацької категорії</option>
+                    @foreach (var group in UserCatalog.Catalog.All.Where(p => p.Type == ComponentType.Custom).GroupBy(p => p.CategoryKey))
+                    {
+                        <optgroup label="@PartFormat.CategoryName(UserCatalog.Registry, group.Key)">
+                            @foreach (var option in group)
+                            {
+                                <option value="@option.Id">@option.Manufacturer @option.Name, @PartFormat.Price(option.Price)</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+                <button class="btn btn-small" disabled="@string.IsNullOrEmpty(customSelected)" @onclick="AddCustom">Додати</button>
+            </div>
+        </section>
+    </div>
+
+    <aside class="summary panel" aria-live="polite">
+        @{
+            var report = Session.Report;
+        }
+        @if (Session.Current.Parts.Count == 0)
+        {
+            <div class="status status-empty">Збірка порожня</div>
+        }
+        else if (report.IsCompatible)
+        {
+            <div class="status status-ok" id="build-status">Збірка сумісна</div>
+        }
+        else
+        {
+            <div class="status status-bad" id="build-status">Проблем сумісності: @report.Problems.Count</div>
+        }
+
+        @if (report.Problems.Count > 0)
+        {
+            <ul class="problems" id="problems">
+                @foreach (var problem in report.Problems)
+                {
+                    <li><strong>@problem.Rule.</strong> @problem.Message</li>
+                }
+            </ul>
+        }
+
+        <dl class="totals">
+            <div><dt>Ціна</dt><dd id="total-price">@PartFormat.Price(report.TotalPrice)</dd></div>
+            <div><dt>Вага</dt><dd id="total-weight">@PartFormat.Weight(report.TotalWeightGrams)</dd></div>
+            <div><dt>Деталей</dt><dd>@Session.Current.Parts.Count</dd></div>
+        </dl>
+
+        @if (Missing.Count > 0 && Session.Current.Parts.Count > 0)
+        {
+            <p class="muted">Ще не обрано: @string.Join(", ", Missing).</p>
+        }
+
+        <hr />
+        <label class="field">
+            <span>Назва збірки</span>
+            <input @bind="nameDraft" @bind:event="oninput" maxlength="80" />
+        </label>
+        <div class="actions">
+            <button class="btn" disabled="@(string.IsNullOrWhiteSpace(nameDraft) || nameDraft.Trim() == Session.Current.Name)" @onclick="Rename">Змінити назву</button>
+            <button class="btn btn-primary" @onclick="() => Save(false)">Зберегти</button>
+        </div>
+        @if (askOverwrite)
+        {
+            <div class="notice notice-error">
+                Збірка «@Session.Current.Name» вже є в сховищі.
+                <div class="actions">
+                    <button class="btn btn-danger btn-small" @onclick="() => Save(true)">Перезаписати</button>
+                    <button class="btn btn-small" @onclick="() => askOverwrite = false">Скасувати</button>
+                </div>
+            </div>
+        }
+        @if (Session.SavedAs is not null)
+        {
+            <p class="muted">Збережено як «@Session.SavedAs». Після змін збережіть ще раз.</p>
+        }
+    </aside>
+</div>
+
+@code {
+    private readonly Dictionary<string, string> selected =
+        StandardCategories.All.ToDictionary(c => c.Key, _ => "", StringComparer.OrdinalIgnoreCase);
+    private string customSelected = "";
+    private string nameDraft = "";
+    private string? message;
+    private bool isError;
+    private bool askOverwrite;
+
+    private List<Part> CustomParts => Session.Current.Parts.Where(p => p.Type == ComponentType.Custom).ToList();
+
+    private List<string> Missing => StandardCategories.All
+        .Where(c => Session.Current.CountOf(Enum.Parse<ComponentType>(c.Key)) == 0)
+        .Select(c => c.DisplayName)
+        .ToList();
+
+    protected override void OnInitialized()
+    {
+        nameDraft = Session.Current.Name;
+        Session.Changed += Refresh;
+        UserCatalog.Changed += Refresh;
+    }
+
+    private void AddSelected(string key, ComponentType type, bool fill)
+    {
+        var id = selected[key];
+        Run(() =>
+        {
+            if (fill)
+                Session.Fill(id, type);
+            else
+                Session.Add(id);
+            selected[key] = "";
+        });
+    }
+
+    private void AddCustom() => Run(() =>
+    {
+        Session.Add(customSelected);
+        customSelected = "";
+    });
+
+    private void Remove(string id) => Run(() => Session.Remove(id));
+
+    private void NewBuild() => Run(() =>
+    {
+        Session.New();
+        nameDraft = Session.Current.Name;
+    });
+
+    private void Rename() => Run(() =>
+    {
+        Session.Rename(nameDraft);
+        nameDraft = Session.Current.Name;
+        askOverwrite = false;
+    }, $"Назву змінено. Збережіть збірку, щоб записати її під новою назвою.");
+
+    private void Save(bool overwrite)
+    {
+        askOverwrite = false;
+        // Збірку, яку відкрили або вже зберегли під цією назвою, перезаписуємо без питання.
+        overwrite |= string.Equals(Session.SavedAs, Session.Current.Name, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            Session.Save(overwrite);
+            (message, isError) = ($"Збірку «{Session.Current.Name}» збережено.", false);
+        }
+        catch (InvalidOperationException)
+        {
+            // BuildLibrary.Save відмовив: назва зайнята іншою збіркою. Питаємо, чи перезаписати.
+            (message, askOverwrite) = (null, true);
+        }
+    }
+
+    private void Run(Action action, string? success = null)
+    {
+        try
+        {
+            action();
+            (message, isError) = (success, false);
+        }
+        catch (Exception ex) when (UserCatalog.IsCatalogError(ex))
+        {
+            (message, isError) = (PartFormat.Message(ex), true);
+        }
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Session.Changed -= Refresh;
+        UserCatalog.Changed -= Refresh;
+    }
+}

@@ -1,0 +1,122 @@
+﻿@page "/catalog"
+@implements IDisposable
+@inject UserCatalog UserCatalog
+@inject BuildSession Session
+
+<PageTitle>Каталог · FPV Configurator</PageTitle>
+
+<h1>Каталог деталей</h1>
+
+<div class="filters">
+    <label class="field">
+        <span>Категорія</span>
+        <select @bind="Category" @bind:after="SyncUrl">
+            <option value="">Усі категорії (@UserCatalog.Catalog.Count)</option>
+            @foreach (var category in UserCatalog.Registry.All)
+            {
+                <option value="@category.Key">@category.DisplayName (@CountIn(category.Key))</option>
+            }
+        </select>
+    </label>
+    <label class="field field-grow">
+        <span>Пошук у назві і виробнику</span>
+        <input type="search" placeholder="Наприклад, T-Motor або 2207" @bind="Text" @bind:event="oninput" />
+    </label>
+    <label class="field">
+        <span>Сортування</span>
+        <select @bind="Sort">
+            <option value="@CatalogSort.None">Без сортування</option>
+            <option value="@CatalogSort.PriceAscending">Ціна: спочатку дешевші</option>
+            <option value="@CatalogSort.PriceDescending">Ціна: спочатку дорожчі</option>
+            <option value="@CatalogSort.WeightAscending">Вага: спочатку легші</option>
+        </select>
+    </label>
+    <label class="check">
+        <input type="checkbox" @bind="InStockOnly" />
+        <span>Лише в наявності</span>
+    </label>
+</div>
+
+<Notice Text="@message" IsError="@isError" />
+
+<p class="muted" id="result-count">Знайдено: @Results.Count</p>
+
+@if (Results.Count == 0)
+{
+    <p class="empty">Нічого не знайдено. Змініть фільтр або рядок пошуку.</p>
+}
+else
+{
+    <div class="cards">
+        @foreach (var part in Results)
+        {
+            <article class="card part-card @(part.InStock ? "" : "out-of-stock")">
+                <div class="card-top">
+                    <span class="chip">@PartFormat.CategoryName(UserCatalog.Registry, part.CategoryKey)</span>
+                    @if (UserCatalog.IsUserPart(part.Id))
+                    {
+                        <span class="chip chip-accent">ваша</span>
+                    }
+                </div>
+                <h2 class="card-title"><a href="catalog/@Uri.EscapeDataString(part.Id)">@part.Name</a></h2>
+                <p class="muted">@part.Manufacturer · @part.Id</p>
+                <ul class="specs-short">
+                    @foreach (var (name, value) in part.GetSpecs().Take(3))
+                    {
+                        <li><span>@name</span> @value</li>
+                    }
+                </ul>
+                <div class="card-bottom">
+                    <div>
+                        <div class="price">@PartFormat.Price(part.Price)</div>
+                        <div class="muted">@PartFormat.Weight(part.WeightGrams) · <StockBadge InStock="part.InStock" /></div>
+                    </div>
+                    <button class="btn btn-small" @onclick="() => AddToBuild(part)">У збірку</button>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "category")]
+    public string? CategoryFromUrl { get; set; }
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private string Category { get; set; } = "";
+    private string Text { get; set; } = "";
+    private bool InStockOnly { get; set; }
+    private CatalogSort Sort { get; set; } = CatalogSort.None;
+    private string? message;
+    private bool isError;
+
+    private IReadOnlyList<Part> Results =>
+        UserCatalog.Catalog.Query(new CatalogQuery(Category, Text, InStockOnly, Sort));
+
+    protected override void OnInitialized() => UserCatalog.Changed += Refresh;
+
+    protected override void OnParametersSet() => Category = CategoryFromUrl ?? "";
+
+    private int CountIn(string key) => UserCatalog.Catalog.Query(new CatalogQuery(CategoryKey: key)).Count;
+
+    private void SyncUrl() =>
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("category", string.IsNullOrEmpty(Category) ? null : Category));
+
+    private void AddToBuild(Part part)
+    {
+        try
+        {
+            Session.Add(part.Id);
+            (message, isError) = ($"«{part.Name}» додано у збірку «{Session.Current.Name}».", false);
+        }
+        catch (InvalidOperationException ex)
+        {
+            (message, isError) = (ex.Message, true);
+        }
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => UserCatalog.Changed -= Refresh;
+}

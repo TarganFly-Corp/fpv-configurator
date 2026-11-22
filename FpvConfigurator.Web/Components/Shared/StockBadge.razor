@@ -1,0 +1,13 @@
+﻿@* Позначка наявності деталі (ФВ-17) *@
+@if (InStock)
+{
+    <span class="badge badge-ok">в наявності</span>
+}
+else
+{
+    <span class="badge badge-muted">немає в наявності</span>
+}
+
+@code {
+    [Parameter] public bool InStock { get; set; }
+}

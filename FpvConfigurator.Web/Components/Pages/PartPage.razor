@@ -1,0 +1,116 @@
+﻿@page "/catalog/{Id}"
+@implements IDisposable
+@inject UserCatalog UserCatalog
+@inject BuildSession Session
+@inject NavigationManager Navigation
+
+@if (part is null)
+{
+    <PageTitle>Деталь не знайдено · FPV Configurator</PageTitle>
+    <h1>Деталь не знайдено</h1>
+    <p>У каталозі немає деталі з Id «@Id». <a href="catalog">Повернутися до каталогу</a></p>
+}
+else
+{
+    <PageTitle>@part.Name · FPV Configurator</PageTitle>
+
+    <p class="crumbs"><a href="catalog">Каталог</a> / <a href="catalog?category=@part.CategoryKey">@category?.DisplayName</a></p>
+    <h1>@part.Name</h1>
+    <p class="muted">@part.Manufacturer · <StockBadge InStock="part.InStock" /></p>
+
+    <Notice Text="@message" IsError="@isError" />
+
+    <div class="two-cols">
+        <section class="panel">
+            <h2>Загальні дані</h2>
+            <table class="table">
+                <tbody>
+                    <tr><th>Id</th><td>@part.Id</td></tr>
+                    <tr><th>Категорія</th><td>@category?.DisplayName (@part.CategoryKey)</td></tr>
+                    <tr><th>Виробник</th><td>@part.Manufacturer</td></tr>
+                    <tr><th>Ціна</th><td>@PartFormat.Price(part.Price)</td></tr>
+                    <tr><th>Вага</th><td>@PartFormat.Weight(part.WeightGrams)</td></tr>
+                    <tr><th>Наявність</th><td>@(part.InStock ? "є" : "немає")</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="panel">
+            <h2>Характеристики</h2>
+            @if (category is null || category.Parameters.Count == 0)
+            {
+                <p class="muted">Схема категорії не має параметрів.</p>
+            }
+            else
+            {
+                <table class="table" id="specs">
+                    <tbody>
+                        @foreach (var parameter in category.Parameters)
+                        {
+                            part.Parameters.TryGetValue(parameter.Key, out var value);
+                            <tr><th>@parameter.DisplayName</th><td>@PartFormat.Value(parameter, value)</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-primary" @onclick="AddToBuild">Додати у збірку</button>
+        @if (UserCatalog.IsUserPart(part.Id))
+        {
+            @if (confirmDelete)
+            {
+                <span>Видалити деталь з каталогу?</span>
+                <button class="btn btn-danger" @onclick="Delete">Так, видалити</button>
+                <button class="btn" @onclick="() => confirmDelete = false">Скасувати</button>
+            }
+            else
+            {
+                <button class="btn btn-danger" @onclick="() => confirmDelete = true">Видалити з каталогу</button>
+            }
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private Part? part;
+    private ComponentCategory? category;
+    private string? message;
+    private bool isError;
+    private bool confirmDelete;
+
+    protected override void OnInitialized() => UserCatalog.Changed += Refresh;
+
+    protected override void OnParametersSet()
+    {
+        part = UserCatalog.Catalog.FindById(Id);
+        category = part is not null && UserCatalog.Registry.TryGet(part.CategoryKey, out var c) ? c : null;
+    }
+
+    private void AddToBuild()
+    {
+        try
+        {
+            Session.Add(part!.Id);
+            (message, isError) = ($"Додано у збірку «{Session.Current.Name}».", false);
+        }
+        catch (InvalidOperationException ex)
+        {
+            (message, isError) = (ex.Message, true);
+        }
+    }
+
+    private void Delete()
+    {
+        UserCatalog.RemovePart(part!.Id);
+        Navigation.NavigateTo("catalog");
+    }
+
+    private void Refresh() => InvokeAsync(() => { OnParametersSet(); StateHasChanged(); });
+
+    public void Dispose() => UserCatalog.Changed -= Refresh;
+}
