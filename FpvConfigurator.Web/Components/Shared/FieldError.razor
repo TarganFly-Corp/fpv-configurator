@@ -1,0 +1,9 @@
+﻿@* Помилка перевірки біля поля форми (ФВ-22) *@
+@if (!string.IsNullOrEmpty(Text))
+{
+    <div class="field-error" role="alert">@Text</div>
+}
+
+@code {
+    [Parameter] public string? Text { get; set; }
+}

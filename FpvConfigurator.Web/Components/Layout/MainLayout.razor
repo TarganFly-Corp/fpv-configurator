@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject BuildSession Session
 
 <div class="page">
     <header class="topbar">
@@ -9,9 +11,16 @@
             </a>
             <nav class="nav" aria-label="Головне меню">
                 <NavLink href="catalog">Каталог</NavLink>
-                <NavLink href="build">Збірка</NavLink>
+                <NavLink href="build">
+                    Збірка
+                    @if (Session.Current.Parts.Count > 0)
+                    {
+                        <span class="nav-badge">@Session.Current.Parts.Count</span>
+                    }
+                </NavLink>
                 <NavLink href="builds">Мої збірки</NavLink>
                 <NavLink href="categories">Категорії</NavLink>
+                <NavLink href="rules">Правила</NavLink>
                 <NavLink href="parts/new">Нова деталь</NavLink>
                 <NavLink href="data">Імпорт і експорт</NavLink>
             </nav>
@@ -30,3 +39,11 @@
     <a href="." class="reload">Перезавантажити</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    protected override void OnInitialized() => Session.Changed += Refresh;
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Session.Changed -= Refresh;
+}

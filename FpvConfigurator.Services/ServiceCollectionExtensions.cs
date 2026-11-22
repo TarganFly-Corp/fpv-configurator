@@ -1,6 +1,7 @@
 ﻿using FpvConfigurator.Catalog;
 using FpvConfigurator.Core;
 using FpvConfigurator.Services.Rules;
+using FpvConfigurator.Services.Rules.Custom;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FpvConfigurator.Services;
@@ -26,6 +27,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICompatibilityRule, PropellerSizeRule>();
         services.AddSingleton<ICompatibilityRule, CellCountRule>();
         services.AddSingleton<ICompatibilityRule, VideoSystemRule>();
+
+        // Правила, які користувач додає сам (ФВ-28): один об'єкт і для редактора, і для BuildService.
+        services.AddSingleton<CustomRuleSet>();
+        services.AddSingleton<ICompatibilityRule>(sp => sp.GetRequiredService<CustomRuleSet>());
 
         services.AddSingleton<BuildService>();
         return services;

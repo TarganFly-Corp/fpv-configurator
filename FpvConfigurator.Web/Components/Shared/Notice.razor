@@ -1,0 +1,10 @@
+﻿@* Повідомлення про результат дії: успіх або помилка *@
+@if (!string.IsNullOrEmpty(Text))
+{
+    <div class="notice @(IsError ? "notice-error" : "notice-ok")" role="@(IsError ? "alert" : "status")">@Text</div>
+}
+
+@code {
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public bool IsError { get; set; }
+}

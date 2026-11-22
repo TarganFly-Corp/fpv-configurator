@@ -1,0 +1,199 @@
+﻿@using System.Globalization
+@using System.Text.RegularExpressions
+@inject UserCatalog UserCatalog
+
+@* Редактор користувацької категорії (ФВ-21) *@
+<section class="panel" id="new-category">
+    <h2>Нова категорія</h2>
+    <p class="muted">Ключ потрібен для файлу JSON: латинські літери, цифри, «_» або «-», починається з літери. Назва показується в інтерфейсі.</p>
+
+    <div class="form-grid">
+        <label class="field">
+            <span>Ключ категорії</span>
+            <input id="category-key" @bind="key" placeholder="Receiver" />
+            <FieldError Text="@Error("key")" />
+        </label>
+        <label class="field">
+            <span>Назва</span>
+            <input id="category-name" @bind="displayName" placeholder="Приймач керування" />
+            <FieldError Text="@Error("name")" />
+        </label>
+    </div>
+
+    <h3>Параметри</h3>
+    @foreach (var (row, index) in rows.Select((r, i) => (r, i)))
+    {
+        <fieldset class="param-row" id="param-@index">
+            <legend>Параметр @(index + 1)</legend>
+            <div class="form-grid">
+                <label class="field">
+                    <span>Ключ</span>
+                    <input class="param-key" @bind="row.Key" placeholder="protocol" />
+                </label>
+                <label class="field">
+                    <span>Назва</span>
+                    <input class="param-name" @bind="row.DisplayName" placeholder="Протокол" />
+                </label>
+                <label class="field">
+                    <span>Тип</span>
+                    <select class="param-type" @bind="row.Type">
+                        @foreach (var type in Enum.GetValues<ParameterType>())
+                        {
+                            <option value="@type">@PartFormat.TypeName(type)</option>
+                        }
+                    </select>
+                </label>
+                @if (row.Type is ParameterType.Integer or ParameterType.Number)
+                {
+                    <label class="field">
+                        <span>Одиниці</span>
+                        <input @bind="row.Unit" placeholder="мм, г, S" />
+                    </label>
+                    <label class="field">
+                        <span>Мінімум</span>
+                        <input class="param-min" inputmode="decimal" @bind="row.Min" />
+                    </label>
+                    <label class="field">
+                        <span>Максимум</span>
+                        <input class="param-max" inputmode="decimal" @bind="row.Max" />
+                    </label>
+                }
+                @if (row.Type == ParameterType.Choice)
+                {
+                    <label class="field field-grow">
+                        <span>Варіанти через кому</span>
+                        <input class="param-options" @bind="row.Options" placeholder="ELRS, Crossfire, FrSky" />
+                    </label>
+                }
+                <label class="check">
+                    <input type="checkbox" @bind="row.Required" />
+                    <span>Обов'язковий</span>
+                </label>
+            </div>
+            <FieldError Text="@Error($"param:{index}")" />
+            <button type="button" class="btn btn-small" @onclick="() => rows.Remove(row)">Прибрати параметр</button>
+        </fieldset>
+    }
+
+    <div class="actions">
+        <button type="button" class="btn" @onclick="() => rows.Add(new ParamRow())">Додати параметр</button>
+        <button type="button" class="btn btn-primary" id="save-category" @onclick="Save">Створити категорію</button>
+    </div>
+    <FieldError Text="@Error("form")" />
+    <Notice Text="@success" />
+    @if (created is not null)
+    {
+        <p><a href="parts/new?category=@created">Додати деталь у категорію «@created»</a></p>
+    }
+</section>
+
+@code {
+    private static readonly Regex KeyPattern = new("^[A-Za-z][A-Za-z0-9_-]*$");
+
+    private string key = "";
+    private string displayName = "";
+    private List<ParamRow> rows = [new()];
+    private readonly Dictionary<string, string> errors = [];
+    private string? success;
+    private string? created;
+
+    private string? Error(string field) => errors.GetValueOrDefault(field);
+
+    private void Save()
+    {
+        errors.Clear();
+        (success, created) = (null, null);
+        key = key.Trim();
+        displayName = displayName.Trim();
+
+        if (!KeyPattern.IsMatch(key))
+            errors["key"] = "Ключ має починатися з латинської літери і містити лише літери, цифри, «_» або «-»";
+        else if (UserCatalog.Registry.TryGet(key, out var existing))
+            errors["key"] = $"Категорія з ключем «{existing.Key}» вже є";
+        if (displayName.Length == 0)
+            errors["name"] = "Вкажіть назву категорії";
+        if (rows.Count == 0)
+            errors["form"] = "Додайте хоча б один параметр";
+
+        var parameters = new List<ParameterDefinition>();
+        foreach (var (row, index) in rows.Select((r, i) => (r, i)))
+        {
+            var definition = row.ToDefinition(out var error);
+            if (definition is null)
+                errors[$"param:{index}"] = error!;
+            else
+                parameters.Add(definition);
+        }
+        if (errors.Count > 0)
+            return;
+
+        try
+        {
+            var category = new ComponentCategory(key, displayName, parameters);
+            UserCatalog.AddCategory(category);
+            (success, created) = ($"Категорію «{category.DisplayName}» створено.", category.Key);
+            (key, displayName, rows) = ("", "", [new()]);
+        }
+        catch (Exception ex) when (UserCatalog.IsCatalogError(ex))
+        {
+            errors["form"] = PartFormat.Message(ex);
+        }
+    }
+
+    /// <summary>Рядок форми для одного параметра. Межі і варіанти зберігаються як текст.</summary>
+    private sealed class ParamRow
+    {
+        private static readonly Regex ParamKeyPattern = new("^[A-Za-z][A-Za-z0-9_]*$");
+
+        public string Key { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public ParameterType Type { get; set; } = ParameterType.Text;
+        public string? Unit { get; set; }
+        public string? Min { get; set; }
+        public string? Max { get; set; }
+        public string? Options { get; set; }
+        public bool Required { get; set; } = true;
+
+        public ParameterDefinition? ToDefinition(out string? error)
+        {
+            error = null;
+            if (!ParamKeyPattern.IsMatch(Key.Trim()))
+            {
+                error = "Ключ параметра: латинські літери, цифри або «_», починається з літери";
+                return null;
+            }
+            var numeric = Type is ParameterType.Integer or ParameterType.Number;
+            if (!TryNumber(numeric ? Min : null, out var min) || !TryNumber(numeric ? Max : null, out var max))
+            {
+                error = "Мінімум і максимум мають бути числами";
+                return null;
+            }
+            var options = Type == ParameterType.Choice
+                ? (Options ?? "").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList()
+                : null;
+
+            try
+            {
+                return new ParameterDefinition(Key.Trim(), DisplayName.Trim(), Type,
+                    numeric && !string.IsNullOrWhiteSpace(Unit) ? Unit.Trim() : null,
+                    Required, min, max, options);
+            }
+            catch (ArgumentException ex)
+            {
+                error = PartFormat.Message(ex);
+                return null;
+            }
+        }
+
+        private static bool TryNumber(string? text, out double? value)
+        {
+            value = null;
+            if (string.IsNullOrWhiteSpace(text))
+                return true;
+            if (!double.TryParse(text.Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
+                return false;
+            value = number;
+            return true;
+        }
+    }
+}
