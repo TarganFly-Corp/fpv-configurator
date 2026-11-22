@@ -1,0 +1,214 @@
+﻿@page "/parts/new"
+@using System.Globalization
+@implements IDisposable
+@inject UserCatalog UserCatalog
+@inject IComponentFactory Factory
+@inject NavigationManager Navigation
+
+<PageTitle>Нова деталь · FPV Configurator</PageTitle>
+
+<h1>Нова деталь</h1>
+<p class="muted">Поля параметрів будуються зі схеми обраної категорії. Деталь потрапляє в каталог і зберігається між запусками.</p>
+
+<section class="panel">
+    <label class="field">
+        <span>Категорія</span>
+        <select id="part-category" @bind="CategoryKey" @bind:after="CategoryChanged">
+            <option value="">Оберіть категорію</option>
+            @foreach (var c in UserCatalog.Registry.All)
+            {
+                <option value="@c.Key">@c.DisplayName</option>
+            }
+        </select>
+    </label>
+
+    @if (category is not null)
+    {
+        <h2>Загальні дані</h2>
+        <div class="form-grid">
+            <label class="field">
+                <span>Id *</span>
+                <input id="part-id" @bind="id" placeholder="rx-2" />
+                <FieldError Text="@Error("id")" />
+            </label>
+            <label class="field">
+                <span>Назва *</span>
+                <input id="part-name" @bind="name" />
+                <FieldError Text="@Error("name")" />
+            </label>
+            <label class="field">
+                <span>Виробник *</span>
+                <input id="part-manufacturer" @bind="manufacturer" />
+                <FieldError Text="@Error("manufacturer")" />
+            </label>
+            <label class="field">
+                <span>Ціна, грн *</span>
+                <input id="part-price" type="number" min="0" step="any" @bind="price" />
+                <FieldError Text="@Error("price")" />
+            </label>
+            <label class="field">
+                <span>Вага, г *</span>
+                <input id="part-weight" type="number" min="0" step="any" @bind="weight" />
+                <FieldError Text="@Error("weight")" />
+            </label>
+            <label class="check">
+                <input id="part-instock" type="checkbox" @bind="inStock" />
+                <span>В наявності</span>
+            </label>
+        </div>
+
+        <h2>Параметри категорії «@category.DisplayName»</h2>
+        @if (category.Parameters.Count == 0)
+        {
+            <p class="muted">У схемі категорії немає параметрів.</p>
+        }
+        <div class="form-grid">
+            @foreach (var parameter in category.Parameters)
+            {
+                var limits = PartFormat.Limits(parameter);
+                <div class="field" id="field-@parameter.Key">
+                    @switch (parameter.Type)
+                    {
+                        case ParameterType.Boolean:
+                            <label class="check">
+                                <input type="checkbox" checked="@IsChecked(parameter.Key)"
+                                       @onchange="e => texts[parameter.Key] = e.Value is true ? bool.TrueString : bool.FalseString" />
+                                <span>@parameter.DisplayName@(parameter.Required ? " *" : "")</span>
+                            </label>
+                            break;
+
+                        case ParameterType.Choice:
+                            <label>
+                                <span>@parameter.DisplayName@(parameter.Required ? " *" : "")</span>
+                                <select @bind="texts[parameter.Key]">
+                                    <option value="">—</option>
+                                    @foreach (var option in parameter.Options)
+                                    {
+                                        <option value="@option">@option</option>
+                                    }
+                                </select>
+                            </label>
+                            break;
+
+                        case ParameterType.Integer:
+                        case ParameterType.Number:
+                            <label>
+                                <span>@parameter.DisplayName@(parameter.Unit is null ? "" : $", {parameter.Unit}")@(parameter.Required ? " *" : "")</span>
+                                <input type="number" step="@(parameter.Type == ParameterType.Integer ? "1" : "any")"
+                                       min="@Invariant(parameter.Min)" max="@Invariant(parameter.Max)" @bind="texts[parameter.Key]" />
+                            </label>
+                            break;
+
+                        default:
+                            <label>
+                                <span>@parameter.DisplayName@(parameter.Required ? " *" : "")</span>
+                                <input @bind="texts[parameter.Key]" />
+                            </label>
+                            break;
+                    }
+                    @if (limits.Length > 0)
+                    {
+                        <small class="muted">@limits</small>
+                    }
+                    <FieldError Text="@Error("param:" + parameter.Key)" />
+                </div>
+            }
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" id="save-part" @onclick="Save">Додати в каталог</button>
+        </div>
+        <FieldError Text="@Error("form")" />
+    }
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "category")]
+    public string? CategoryFromUrl { get; set; }
+
+    private string CategoryKey { get; set; } = "";
+    private ComponentCategory? category;
+    private string id = "";
+    private string name = "";
+    private string manufacturer = "";
+    private string? price;
+    private string? weight;
+    private bool inStock = true;
+    private Dictionary<string, string?> texts = [];
+    private readonly Dictionary<string, string> errors = [];
+
+    protected override void OnInitialized() => UserCatalog.Changed += Refresh;
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(CategoryFromUrl) && CategoryKey != CategoryFromUrl)
+        {
+            CategoryKey = CategoryFromUrl;
+            CategoryChanged();
+        }
+    }
+
+    private void CategoryChanged()
+    {
+        errors.Clear();
+        category = UserCatalog.Registry.TryGet(CategoryKey, out var c) ? c : null;
+        texts = category?.Parameters.ToDictionary(p => p.Key, p => p.Type == ParameterType.Boolean ? bool.FalseString : (string?)null)
+                ?? [];
+    }
+
+    private string? Error(string field) => errors.GetValueOrDefault(field);
+
+    private bool IsChecked(string key) => texts.GetValueOrDefault(key) == bool.TrueString;
+
+    private static string? Invariant(double? value) => value?.ToString(CultureInfo.InvariantCulture);
+
+    private void Save()
+    {
+        errors.Clear();
+        if (category is null)
+            return;
+
+        id = id.Trim();
+        if (id.Length == 0)
+            errors["id"] = "Вкажіть Id";
+        else if (UserCatalog.Catalog.Contains(id))
+            errors["id"] = $"Деталь з Id «{id}» вже є в каталозі";
+        if (string.IsNullOrWhiteSpace(name))
+            errors["name"] = "Вкажіть назву";
+        if (string.IsNullOrWhiteSpace(manufacturer))
+            errors["manufacturer"] = "Вкажіть виробника";
+        if (!decimal.TryParse(price?.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var priceValue) || priceValue < 0)
+            errors["price"] = "Ціна має бути числом не меншим за 0";
+        if (!double.TryParse(weight?.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var weightValue) || weightValue <= 0)
+            errors["weight"] = "Вага має бути числом більшим за 0";
+
+        // Кожне поле перевіряється за схемою категорії, помилка показується біля нього (ФВ-22).
+        var values = new Dictionary<string, object?>();
+        foreach (var parameter in category.Parameters)
+        {
+            var value = PartFormat.Parse(parameter, texts.GetValueOrDefault(parameter.Key));
+            var error = parameter.Validate(value);
+            if (error is not null)
+                errors["param:" + parameter.Key] = error;
+            if (value is not null)
+                values[parameter.Key] = value;
+        }
+        if (errors.Count > 0)
+            return;
+
+        try
+        {
+            var info = new ComponentInfo(id, name.Trim(), manufacturer.Trim(), priceValue, weightValue, inStock);
+            var part = UserCatalog.AddPart(Factory, category.Key, info, values);
+            Navigation.NavigateTo($"catalog/{Uri.EscapeDataString(part.Id)}");
+        }
+        catch (Exception ex) when (UserCatalog.IsCatalogError(ex))
+        {
+            errors["form"] = PartFormat.Message(ex);
+        }
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => UserCatalog.Changed -= Refresh;
+}
