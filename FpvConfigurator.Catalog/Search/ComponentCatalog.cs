@@ -38,6 +38,14 @@ public sealed class ComponentCatalog : IComponentCatalog
 
     public bool Contains(string id) => _byId.ContainsKey(id);
 
+    public bool Remove(string id)
+    {
+        if (!_byId.Remove(id, out var component))
+            return false;
+        _items.Remove(component);
+        return true;
+    }
+
     /// <summary>Повертає деталь за Id або null, якщо такої немає.</summary>
     public IComponent? FindById(string id) => _byId.GetValueOrDefault(id);
 
