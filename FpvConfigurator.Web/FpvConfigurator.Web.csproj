@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\FpvConfigurator.Core\FpvConfigurator.Core.csproj" />
+		<ProjectReference Include="..\FpvConfigurator.Components\FpvConfigurator.Components.csproj" />
+		<ProjectReference Include="..\FpvConfigurator.Catalog\FpvConfigurator.Catalog.csproj" />
+		<ProjectReference Include="..\FpvConfigurator.Services\FpvConfigurator.Services.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Стартовий каталог лежить у корені репозиторію і копіюється поруч із програмою -->
+		<None Include="..\catalog\*.json" Link="catalog\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<!-- Дані користувача (збірки, власні деталі) не публікуються і не потрапляють у Git -->
+		<Content Remove="App_Data\**" />
+		<None Remove="App_Data\**" />
+	</ItemGroup>
+
+</Project>

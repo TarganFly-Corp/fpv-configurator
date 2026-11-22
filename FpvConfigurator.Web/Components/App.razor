@@ -1,0 +1,22 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["FpvConfigurator.Web.styles.css"]" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='8' cy='8' r='6' fill='%23f97316'/><circle cx='24' cy='8' r='6' fill='%23f97316'/><circle cx='8' cy='24' r='6' fill='%23f97316'/><circle cx='24' cy='24' r='6' fill='%23f97316'/><rect x='11' y='11' width='10' height='10' rx='2' fill='%231e293b'/></svg>" />
+    <ImportMap />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

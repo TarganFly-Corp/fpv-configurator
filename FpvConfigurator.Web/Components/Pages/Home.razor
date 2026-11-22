@@ -1,0 +1,17 @@
+﻿@page "/"
+@inject ICategoryRegistry Registry
+@inject IComponentCatalog Catalog
+
+<PageTitle>FPV Configurator</PageTitle>
+
+<section class="hero">
+    <h1>Конфігуратор FPV-дрона</h1>
+    <p>Оберіть раму, польотний контролер, ESC, мотори, пропелери, камеру, відеопередавач і батарею. Застосунок одразу перевіряє сумісність і рахує ціну та вагу збірки.</p>
+</section>
+
+<section class="stats">
+    <div class="stat"><span class="stat-value">@Registry.All.Count</span><span class="stat-label">категорій</span></div>
+    <div class="stat"><span class="stat-value">@Catalog.Count</span><span class="stat-label">деталей у каталозі</span></div>
+</section>
+
+<p class="muted">Каркас застосунку (#72). Сторінки каталогу, збірки і редактори з'являться в задачах #74 і #75.</p>
