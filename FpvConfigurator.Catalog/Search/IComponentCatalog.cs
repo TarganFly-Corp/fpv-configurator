@@ -18,6 +18,9 @@ public interface IComponentCatalog
 
     bool Contains(string id);
 
+    /// <summary>Видаляє деталь за Id (регістр не важливий). Повертає false, якщо такої немає.</summary>
+    bool Remove(string id);
+
     /// <summary>Повертає деталь за Id або null, якщо такої немає.</summary>
     IComponent? FindById(string id);
 
