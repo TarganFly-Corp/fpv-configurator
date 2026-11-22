@@ -1,0 +1,58 @@
+﻿@page "/categories"
+@implements IDisposable
+@inject UserCatalog UserCatalog
+
+<PageTitle>Категорії · FPV Configurator</PageTitle>
+
+<div class="page-head">
+    <h1>Категорії і схеми параметрів</h1>
+    <div class="actions">
+        <a class="btn btn-primary" href="categories#new-category">Нова категорія</a>
+    </div>
+</div>
+
+<div class="cards cards-wide">
+    @foreach (var category in UserCatalog.Registry.All)
+    {
+        <article class="card" id="category-@category.Key">
+            <div class="card-top">
+                <span class="chip">@category.Key</span>
+                @if (category.IsStandard)
+                {
+                    <span class="chip">стандартна</span>
+                }
+                else
+                {
+                    <span class="chip chip-accent">користувацька</span>
+                }
+            </div>
+            <h2 class="card-title">@category.DisplayName</h2>
+            <p class="muted"><a href="catalog?category=@category.Key">Деталей: @UserCatalog.Catalog.Query(new CatalogQuery(CategoryKey: category.Key)).Count</a></p>
+            <table class="table table-compact">
+                <thead><tr><th>Параметр</th><th>Тип</th><th>Межі</th></tr></thead>
+                <tbody>
+                    @foreach (var parameter in category.Parameters)
+                    {
+                        <tr>
+                            <td>@parameter.DisplayName@(parameter.Required ? " *" : "") <span class="muted param-key-hint">@parameter.Key</span></td>
+                            <td>@PartFormat.TypeName(parameter.Type)@(parameter.Unit is null ? "" : $", {parameter.Unit}")</td>
+                            <td>@PartFormat.Limits(parameter)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <a class="btn btn-small" href="parts/new?category=@category.Key">Додати деталь</a>
+        </article>
+    }
+</div>
+<p class="muted">* обов'язковий параметр</p>
+
+<CategoryEditor />
+
+@code {
+    protected override void OnInitialized() => UserCatalog.Changed += Refresh;
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => UserCatalog.Changed -= Refresh;
+}
