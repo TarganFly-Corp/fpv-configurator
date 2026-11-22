@@ -433,3 +433,6 @@ manualcheck*.txt
 # Звіт про покриття коду (ReportGenerator) і сирі результати coverlet
 coverage/
 coveragereport/
+
+# Дані користувача веб-застосунку (збірки, власні деталі)
+**/App_Data/
