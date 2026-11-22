@@ -16,7 +16,8 @@ public sealed class ComponentCategory
         ArgumentNullException.ThrowIfNull(parameters);
 
         var list = parameters.ToList();
-        var duplicate = list.GroupBy(p => p.Key).FirstOrDefault(g => g.Count() > 1);
+        // Ключі нечутливі до регістру, як ключі категорій і Id деталей: kv і KV є одним параметром (ФВ-21).
+        var duplicate = list.GroupBy(p => p.Key, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
         if (duplicate is not null)
             throw new ArgumentException($"Параметр «{duplicate.Key}» описано двічі", nameof(parameters));
 
