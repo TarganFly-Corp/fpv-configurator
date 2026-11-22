@@ -4,6 +4,7 @@ using FpvConfigurator.Core;
 using System.ComponentModel;
 using FpvConfigurator.Services;
 using Microsoft.Extensions.DependencyInjection;
+using FpvConfigurator.Services.Rules.Custom;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 int passed = 0, failed = 0;
@@ -100,7 +101,9 @@ foreach (var id in new[] { "fr-1", "fc-1", "esc-1", "mt-1", "mt-1", "mt-1", "mt-
 var report = buildService.Check(build);
 Console.WriteLine($"{build.Name}: {build.Parts.Count} деталей, {report.TotalPrice} грн, {report.TotalWeightGrams:0.#} г");
 
-Check("Контейнер передав сервісу 4 правила", buildService.Rules.Count == 4);
+Check("Контейнер передав сервісу 5 правил (4 вбудовані і правила користувача)", buildService.Rules.Count == 5);
+Check("Редактор і сервіс працюють з одним набором правил користувача",
+      buildService.Rules.Contains(provider.GetRequiredService<CustomRuleSet>()));
 Check("Збірка без камери і VTX сумісна", report.IsCompatible);
 
 buildService.AddPart(build, "cam-1");
