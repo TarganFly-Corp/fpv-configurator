@@ -1,17 +1,70 @@
 ﻿@page "/"
-@inject ICategoryRegistry Registry
-@inject IComponentCatalog Catalog
+@implements IDisposable
+@inject UserCatalog UserCatalog
+@inject BuildLibrary Library
 
 <PageTitle>FPV Configurator</PageTitle>
 
 <section class="hero">
     <h1>Конфігуратор FPV-дрона</h1>
     <p>Оберіть раму, польотний контролер, ESC, мотори, пропелери, камеру, відеопередавач і батарею. Застосунок одразу перевіряє сумісність і рахує ціну та вагу збірки.</p>
+    <div class="actions">
+        <a class="btn btn-primary" href="build">Почати збірку</a>
+        <a class="btn" href="catalog">Переглянути каталог</a>
+    </div>
 </section>
 
 <section class="stats">
-    <div class="stat"><span class="stat-value">@Registry.All.Count</span><span class="stat-label">категорій</span></div>
-    <div class="stat"><span class="stat-value">@Catalog.Count</span><span class="stat-label">деталей у каталозі</span></div>
+    <div class="stat"><span class="stat-value">@UserCatalog.Registry.All.Count</span><span class="stat-label">категорій</span></div>
+    <div class="stat"><span class="stat-value">@UserCatalog.Catalog.Count</span><span class="stat-label">деталей у каталозі</span></div>
+    <div class="stat"><span class="stat-value">@UserCatalog.UserPartCount</span><span class="stat-label">ваших деталей</span></div>
+    <div class="stat"><span class="stat-value">@Library.Names().Count</span><span class="stat-label">збережених збірок</span></div>
 </section>
 
-<p class="muted">Каркас застосунку (#72). Сторінки каталогу, збірки і редактори з'являться в задачах #74 і #75.</p>
+@if (UserCatalog.StartupErrors.Count > 0)
+{
+    <div class="notice notice-error" role="alert">
+        Під час запуску не вдалося завантажити частину каталогу:
+        <ul>
+            @foreach (var error in UserCatalog.StartupErrors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+<section class="tiles">
+    <a class="tile" href="catalog">
+        <h2>Каталог</h2>
+        <p>Пошук за назвою і виробником, фільтр за категорією і наявністю, сортування за ціною і вагою.</p>
+    </a>
+    <a class="tile" href="build">
+        <h2>Конструктор збірки</h2>
+        <p>Слоти для восьми стандартних категорій і будь-яка кількість додаткових деталей.</p>
+    </a>
+    <a class="tile" href="builds">
+        <h2>Мої збірки</h2>
+        <p>Збережені збірки: відкрити, перейменувати, видалити.</p>
+    </a>
+    <a class="tile" href="categories">
+        <h2>Категорії</h2>
+        <p>Схеми параметрів і редактор власних категорій, наприклад приймача або GPS-модуля.</p>
+    </a>
+    <a class="tile" href="parts/new">
+        <h2>Нова деталь</h2>
+        <p>Форма будується зі схеми обраної категорії і перевіряє кожне поле.</p>
+    </a>
+    <a class="tile" href="data">
+        <h2>Імпорт і експорт</h2>
+        <p>Завантажити каталог з JSON або зберегти його у файл.</p>
+    </a>
+</section>
+
+@code {
+    protected override void OnInitialized() => UserCatalog.Changed += Refresh;
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => UserCatalog.Changed -= Refresh;
+}
