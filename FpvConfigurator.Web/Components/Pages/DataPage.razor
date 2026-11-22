@@ -1,0 +1,68 @@
+﻿@page "/data"
+@inject UserCatalog UserCatalog
+
+<PageTitle>Імпорт і експорт · FPV Configurator</PageTitle>
+
+<h1>Імпорт і експорт каталогу</h1>
+<p class="muted">Формат файлу такий самий, як у catalog/custom-parts.json: масив categories зі схемами і масив components з деталями.</p>
+
+<div class="two-cols">
+    <section class="panel">
+        <h2>Імпорт з JSON</h2>
+        <p>Категорії і деталі з файлу додаються в каталог і зберігаються між запусками. Якщо у файлі є помилка, каталог не змінюється.</p>
+        <label class="field">
+            <span>Файл JSON (до 1 МБ)</span>
+            <InputFile id="import-file" accept=".json,application/json" OnChange="ImportAsync" />
+        </label>
+        <Notice Text="@message" IsError="@isError" />
+        @if (imported is not null)
+        {
+            <ul>
+                @foreach (var c in imported.Categories)
+                {
+                    <li>Категорія: @c.DisplayName (@c.Key)</li>
+                }
+                @foreach (var p in imported.Parts)
+                {
+                    <li>Деталь: <a href="catalog/@Uri.EscapeDataString(p.Id)">@p.Manufacturer @p.Name</a> (@p.Id)</li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="panel">
+        <h2>Експорт у JSON</h2>
+        <p>Увесь каталог: користувацькі категорії і всі деталі, зокрема стандартних категорій.</p>
+        <a class="btn btn-primary" href="api/catalog/export" download="fpv-catalog.json" data-enhance-nav="false">Завантажити весь каталог</a>
+        <p>Лише ваші дані: категорії і деталі, додані через інтерфейс або імпортом.</p>
+        <a class="btn" href="api/catalog/export?scope=user" download="fpv-my-parts.json" data-enhance-nav="false">Завантажити мої деталі</a>
+        <p class="muted">Ваші дані зберігаються у файлі @UserCatalog.UserFile</p>
+    </section>
+</div>
+
+@code {
+    private const long MaxFileSize = 1024 * 1024;
+    private string? message;
+    private bool isError;
+    private ImportResult? imported;
+
+    private async Task ImportAsync(InputFileChangeEventArgs e)
+    {
+        imported = null;
+        try
+        {
+            using var reader = new StreamReader(e.File.OpenReadStream(MaxFileSize));
+            var json = await reader.ReadToEndAsync();
+            imported = UserCatalog.Import(json);
+            (message, isError) = ($"Імпортовано з {e.File.Name}: категорій {imported.Categories.Count}, деталей {imported.Parts.Count}.", false);
+        }
+        catch (IOException)
+        {
+            (message, isError) = ("Файл завеликий або не читається. Максимальний розмір 1 МБ.", true);
+        }
+        catch (Exception ex) when (UserCatalog.IsCatalogError(ex))
+        {
+            (message, isError) = ($"Файл не імпортовано: {PartFormat.Message(ex)}", true);
+        }
+    }
+}
